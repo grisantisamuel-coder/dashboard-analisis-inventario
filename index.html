@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard Inventario · </title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--navy:#071526;--navy2:#0f2340;--navy3:#163258;--acc:#3b82f6;--a2:#60a5fa;--a3:#93c5fd;--bg:#eaeff6;--surf:#fff;--surf2:#f4f7fb;--bord:#cfd9e8;--bord2:#b0c2d8;--txt:#0b1d30;--txt2:#2e4a65;--txt3:#6080a0;--A:#0d9488;--Abg:#f0fdfa;--Ab:#5eead4;--B:#7c3aed;--Bbg:#f5f3ff;--Bb:#c4b5fd;--C:#64748b;--Cbg:#f1f5f9;--Cb:#94a3b8;--crit:#dc2626;--critbg:#fef2f2;--critb:#fca5a5;--exc:#d97706;--excbg:#fffbeb;--excb:#fcd34d;--ok:#059669;--okbg:#ecfdf5;--r:10px;--r2:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--txt);font-size:13.5px;line-height:1.5}
+.hdr{background:var(--navy);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300}
+.hdr-l{display:flex;align-items:center;gap:14px}
+.hdr-logo{width:36px;height:36px;background:var(--acc);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff}
+.hdr-title{font-size:14.5px;font-weight:600;color:#fff;letter-spacing:-.3px}
+.hdr-sub{font-size:11px;color:#7090b0;margin-top:1px}
+.hdr-chip{font-size:11px;color:#7090b0;border:1px solid #1e3a5f;border-radius:20px;padding:3px 12px}
+.nav{background:var(--navy2);border-bottom:1px solid #193358;display:flex;overflow-x:auto;position:sticky;top:68px;z-index:299}
+.nav::-webkit-scrollbar{height:0}
+.ntab{padding:12px 18px;font-size:12px;font-weight:500;color:#6090b0;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s;user-select:none}
+.ntab:hover{color:#c0d8f0}.ntab.on{color:#fff;border-bottom-color:var(--a2)}
+.ndot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.page{padding:22px 28px;max-width:1500px;margin:0 auto}
+.sec{display:none}.sec.on{display:block}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.kcard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:14px 15px}
+.kcard.bl{border-left:3px solid var(--acc)}.kcard.tl{border-left:3px solid var(--A)}.kcard.pu{border-left:3px solid var(--B)}.kcard.re{border-left:3px solid var(--crit)}.kcard.am{border-left:3px solid var(--exc)}
+.klbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.kval{font-size:23px;font-weight:700;letter-spacing:-1px;line-height:1}
+.ksub{font-size:10.5px;color:var(--txt3);margin-top:3px}
+.crow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.ccard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:18px}
+.ctitle{font-size:12.5px;font-weight:600;margin-bottom:2px}
+.csub{font-size:11px;color:var(--txt3);margin-bottom:14px}
+.distbar{display:flex;height:11px;border-radius:6px;overflow:hidden;margin:10px 0 8px}
+.dseg{height:100%}
+.dleg{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px}
+.ditem{display:flex;align-items:center;gap:5px}
+.ddot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.tcard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.thead2{padding:12px 18px;border-bottom:1px solid var(--bord);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.ttitle{font-size:13px;font-weight:600}
+.tdesc{font-size:11px;color:var(--txt3);margin-top:1px}
+.tbadge{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.ba{background:var(--Abg);color:var(--A)}.bb{background:var(--Bbg);color:var(--B)}.bc{background:var(--Cbg);color:var(--C)}
+.bcrit{background:var(--critbg);color:var(--crit)}.bexc{background:var(--excbg);color:var(--exc)}.bok{background:var(--okbg);color:var(--ok)}
+.fbar{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--bord);background:var(--surf2);flex-wrap:wrap}
+.fsrch{flex:1;min-width:180px;padding:7px 12px;border:1px solid var(--bord2);border-radius:var(--r2);font-family:'Sora',sans-serif;font-size:12.5px;color:var(--txt);background:var(--surf);outline:none}
+.fsrch:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.fsel{padding:7px 10px;border:1px solid var(--bord2);border-radius:var(--r2);font-family:'Sora',sans-serif;font-size:12px;color:var(--txt);background:var(--surf);outline:none;cursor:pointer}
+.fcnt{font-size:11px;color:var(--txt3);white-space:nowrap;margin-left:auto}
+.tscroll{overflow-y:auto}
+.tscroll::-webkit-scrollbar{width:4px}
+.tscroll::-webkit-scrollbar-track{background:var(--bg)}
+.tscroll::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--surf2);padding:8px 13px;text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bord);position:sticky;top:0;z-index:1}
+th.r{text-align:right}
+td{padding:8px 13px;border-bottom:1px solid #edf2f8}
+td.r{text-align:right}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7fafe}
+tr.hc td{background:#fff5f5}
+tr.he td{background:#fffbf0}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.abc-a{background:var(--Abg);color:var(--A);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+.abc-b{background:var(--Bbg);color:var(--B);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+.abc-c{background:var(--Cbg);color:var(--C);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+.al-crit{background:var(--critbg);color:var(--crit);font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;display:inline-block;white-space:nowrap}
+.al-exc{background:var(--excbg);color:var(--exc);font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;display:inline-block;white-space:nowrap}
+.al-muer{background:#f3f4f6;color:#6b7280;font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;display:inline-block;white-space:nowrap}
+.al-ok{background:var(--okbg);color:var(--ok);font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;display:inline-block}
+.cob{font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;display:inline-block;white-space:nowrap}
+.cob-ok{background:var(--okbg);color:var(--ok)}.cob-w{background:var(--excbg);color:var(--exc)}.cob-r{background:var(--critbg);color:var(--crit)}.cob-p{background:var(--Bbg);color:var(--B)}
+.ibar{display:flex;align-items:center;gap:6px}
+.ibg{flex:1;height:4px;background:#e2eaf4;border-radius:2px;min-width:40px}
+.ifl{height:100%;border-radius:2px}
+.ilbl{font-size:11px;color:var(--txt3);min-width:36px;text-align:right}
+.shdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.stitle{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.scnt{font-size:11.5px;color:var(--txt3)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.tbr{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #edf2f8}
+.tbr:last-child{border-bottom:none}
+.tbn{font-weight:500;min-width:108px;font-size:12px}
+.tbw{flex:1}.tbv{font-size:12px;font-weight:600;min-width:48px;text-align:right}
+.dleg2{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.dli{display:flex;align-items:center;gap:5px;font-size:11px}
+.dld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.mxcell{border-radius:var(--r);padding:14px 16px;border:1px solid transparent}
+.mxcell.A{background:var(--Abg);border-color:var(--Ab)}.mxcell.B{background:var(--Bbg);border-color:var(--Bb)}.mxcell.C{background:var(--Cbg);border-color:var(--Cb)}
+.mxlbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.mxlbl.A{color:var(--A)}.mxlbl.B{color:var(--B)}.mxlbl.C{color:var(--C)}
+.mxval{font-size:22px;font-weight:700;letter-spacing:-1px}
+.mxval.A{color:var(--A)}.mxval.B{color:var(--B)}.mxval.C{color:var(--C)}
+.mxsub{font-size:11px;color:var(--txt3);margin-top:3px}
+.mxnote{margin-top:8px;font-size:11px}
+.ngrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+.ncard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:16px}
+.nctitle{font-size:13px;font-weight:600;margin-bottom:10px}
+.nmonths{display:flex;gap:5px}
+.nm{background:var(--surf2);border:1px solid var(--bord);border-radius:5px;padding:5px 0;text-align:center;flex:1}
+.nm-l{font-size:9.5px;color:var(--txt3);font-weight:600}
+.nm-v{font-size:14px;font-weight:700;margin-top:2px;color:var(--txt3)}
+.nm.on{background:var(--navy3);border-color:var(--navy3)}
+.nm.on .nm-l{color:#a0c0e0}.nm.on .nm-v{color:#fff}
+.nm-stock{margin-top:8px;font-size:11px;color:var(--txt3);display:flex;align-items:center;justify-content:space-between}
+.nm-stock strong{color:var(--txt);font-size:12px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px}
+.pcard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:18px}
+.pcard.r{border-top:3px solid var(--crit)}.pcard.g{border-top:3px solid var(--ok)}.pcard.a{border-top:3px solid var(--exc)}.pcard.b{border-top:3px solid var(--acc)}.pcard.gr{border-top:3px solid var(--txt3)}
+.ptag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);margin-bottom:5px}
+.ptitle{font-size:13.5px;font-weight:600;margin-bottom:7px}
+.pbody{font-size:12px;color:var(--txt2);line-height:1.65}
+.pitems{margin-top:10px;padding-top:10px;border-top:1px solid var(--bord)}
+.pi{font-size:11.5px;color:var(--txt3);padding:2.5px 0;display:flex;align-items:flex-start;gap:5px}
+.pi::before{content:'→';color:var(--acc);flex-shrink:0;font-size:10.5px;margin-top:1px}
+.pimp{margin-top:8px;font-size:11px;font-weight:600;color:var(--ok)}
+.exec{background:var(--navy);border-radius:var(--r);padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.exh{font-size:12px;font-weight:600;margin-bottom:8px}
+.exh.g{color:#5eead4}.exh.r{color:#f87171}
+.exi{font-size:11.5px;color:#7aaccf;padding:4px 0;border-bottom:1px solid #1a3a60}
+.exi:last-child{border-bottom:none}
+.foot{text-align:center;padding:18px;color:var(--txt3);font-size:10.5px;border-top:1px solid var(--bord);margin-top:28px}
+@media(max-width:900px){.crow,.twocol,.matrix{grid-template-columns:1fr}.page{padding:12px}.hdr{padding:12px 16px}.exec{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="hdr-logo">CUADRO</div>
+    <div><div class="hdr-title">Dashboard Inventario </div><div class="hdr-sub">Clasificación ABC Pareto + Índice de Cobertura · Matriz de Salud</div></div>
+  </div>
+  <div class="hdr-chip">Nov 2025 – Abr 2026 · 6 meses</div>
+</div>
+<div class="nav">
+  <div class="ntab on" onclick="goTab('overview',this)"><span class="ndot" style="background:#60a5fa"></span>Resumen</div>
+  <div class="ntab" onclick="goTab('catalogo',this)"><span class="ndot" style="background:#0d9488"></span>Catálogo ABC</div>
+  <div class="ntab" onclick="goTab('reabasto',this)"><span class="ndot" style="background:#dc2626"></span>Reabastecimiento</div>
+  <div class="ntab" onclick="goTab('sobrestock',this)"><span class="ndot" style="background:#d97706"></span>Sobrestock</div>
+  <div class="ntab" onclick="goTab('muerto',this)"><span class="ndot" style="background:#6b7280"></span>Inventario muerto</div>
+  <div class="ntab" onclick="goTab('nuevos',this)"><span class="ndot" style="background:#2563eb"></span>Modelos nuevos</div>
+  <div class="ntab" onclick="goTab('plan',this)"><span class="ndot" style="background:#7c3aed"></span>Plan de acción</div>
+</div>
+<div class="page">
+
+<!-- ===== OVERVIEW ===== -->
+<div id="sec-overview" class="sec on">
+  <div class="kgrid">
+    <div class="kcard bl"><div class="klbl">Stock total</div><div class="kval">58,990</div><div class="ksub">unidades en inventario activo</div></div>
+    <div class="kcard bl"><div class="klbl">Vendido 6m</div><div class="kval">59,066</div><div class="ksub">Nov 2025 – Abr 2026</div></div>
+    <div class="kcard am"><div class="klbl">Cobertura global</div><div class="kval" style="color:var(--exc)">6.0m</div><div class="ksub">meses de stock al ritmo actual</div></div>
+    <div class="kcard tl"><div class="klbl">Clase A · Estrellas</div><div class="kval" style="color:var(--A)">28</div><div class="ksub">modelos · 80.0% de ventas</div></div>
+    <div class="kcard pu"><div class="klbl">Clase B · Promedio</div><div class="kval" style="color:var(--B)">29</div><div class="ksub">modelos · 14.9% de ventas</div></div>
+    <div class="kcard"><div class="klbl">Clase C · Lentos</div><div class="kval" style="color:var(--C)">48</div><div class="ksub">modelos · 5.1% de ventas</div></div>
+    <div class="kcard re"><div class="klbl">⚡ Crítico — Quiebre</div><div class="kval" style="color:var(--crit)">3</div><div class="ksub">modelos A con &lt;1m cobertura</div></div>
+    <div class="kcard am"><div class="klbl">▲ Sobrestock</div><div class="kval" style="color:var(--exc)">36</div><div class="ksub">modelos con &gt;12m cobertura</div></div>
+    <div class="kcard"><div class="klbl">● Inventario muerto</div><div class="kval" style="color:#6b7280">306</div><div class="ksub">SKUs · 2,209 uds sin venta</div></div>
+  </div>
+  <div class="ccard" style="margin-bottom:16px">
+    <div class="ctitle">Distribución del inventario · Clasificación ABC por Pareto</div>
+    <div class="csub">A = 80% ventas · B = siguiente 15% · C = 5% restante · basado en unidades vendidas Nov 2025–Abr 2026</div>
+    <div class="distbar">
+      <div class="dseg" style="width:64.6%;background:var(--A)"></div>
+      <div class="dseg" style="width:19.6%;background:var(--B)"></div>
+      <div class="dseg" style="width:15.8%;background:var(--C)"></div>
+    </div>
+    <div class="dleg">
+      <div class="ditem"><div class="ddot" style="background:var(--A)"></div><strong>Clase A</strong>&nbsp;28 modelos · 38,137 uds stock · 47,235 vendidas (80.0%)</div>
+      <div class="ditem"><div class="ddot" style="background:var(--B)"></div><strong>Clase B</strong>&nbsp;29 modelos · 11,544 uds stock · 8,822 vendidas (14.9%)</div>
+      <div class="ditem"><div class="ddot" style="background:var(--C)"></div><strong>Clase C</strong>&nbsp;48 modelos · 9,309 uds stock · 3,009 vendidas (5.1%)</div>
+    </div>
+  </div>
+  <div class="matrix">
+    <div class="mxcell A"><div class="mxlbl A">A · Estrellas · 80% ventas</div><div class="mxval A">28</div><div class="mxsub">modelos · 47,235 uds vendidas</div><div class="mxnote" style="color:var(--A)">3 con quiebre · 8 con exceso</div></div>
+    <div class="mxcell B"><div class="mxlbl B">B · Promedio · 15% ventas</div><div class="mxval B">29</div><div class="mxsub">modelos · 8,822 uds vendidas</div><div class="mxnote" style="color:var(--B)">5 con bajo stock · 10 sobrestock</div></div>
+    <div class="mxcell C"><div class="mxlbl C">C · Lentos · 5% ventas</div><div class="mxval C">48</div><div class="mxsub">modelos · 3,009 uds vendidas</div><div class="mxnote" style="color:var(--C)">2 modelos con 0 ventas · 18 sobrestock</div></div>
+  </div>
+  <div class="crow">
+    <div class="ccard">
+      <div class="ctitle">Ventas mensuales · Nov 2025 – Abr 2026</div>
+      <div class="csub">Diciembre pico (22,776). Enero caída estacional. Repunte en marzo.</div>
+      <div style="position:relative;height:200px"><canvas id="ch-trend" role="img" aria-label="Tendencia ventas mensual">Nov-Abr</canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle">Ventas por tienda · 6 meses</div>
+      <div class="csub">Grieta + Sambil concentran el 61% del volumen total de ventas</div>
+      <div style="position:relative;height:200px"><canvas id="ch-tiendas" role="img" aria-label="Ventas por tienda">Tiendas</canvas></div>
+    </div>
+  </div>
+  <div class="twocol">
+    <div class="tcard">
+      <div class="thead2"><div><div class="ttitle">Stock por ubicación</div><div class="tdesc">Unidades disponibles hoy</div></div></div>
+      <div style="padding:8px 16px 12px" id="stock-bars"></div>
+    </div>
+    <div class="ccard" style="margin-bottom:0">
+      <div class="ctitle">Composición ABC · modelos</div>
+      <div class="csub">105 modelos analizados (excl. 6 nuevos y 8 eliminados del análisis)</div>
+      <div class="dleg2">
+        <div class="dli"><div class="dld" style="background:var(--A)"></div>A: 28 modelos</div>
+        <div class="dli"><div class="dld" style="background:var(--B)"></div>B: 29 modelos</div>
+        <div class="dli"><div class="dld" style="background:var(--C)"></div>C: 48 modelos</div>
+      </div>
+      <div style="position:relative;height:170px"><canvas id="ch-donut" role="img" aria-label="ABC composición">—</canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATÁLOGO ===== -->
+<div id="sec-catalogo" class="sec">
+  <div class="shdr"><div class="stitle">Catálogo completo — 105 modelos</div><div class="scnt">Clasificación ABC Pareto · ordenado por volumen de ventas</div></div>
+  <div class="tcard">
+    <div class="fbar">
+      <input class="fsrch" type="text" placeholder="Buscar modelo..." id="srch-cat" oninput="filterCat()">
+      <select class="fsel" id="sel-cat-abc" onchange="filterCat()"><option value="">Todas las clases</option><option value="A">Clase A</option><option value="B">Clase B</option><option value="C">Clase C</option></select>
+      <select class="fsel" id="sel-cat-al" onchange="filterCat()"><option value="">Todas las alertas</option><option value="CRÍTICO">⚡ Crítico</option><option value="EXCESO">▲ Exceso</option><option value="MUERTO">● Muerto</option><option value="OK">✓ OK</option></select>
+      <span class="fcnt" id="cnt-cat">105 modelos</span>
+    </div>
+    <div class="tscroll" style="max-height:680px">
+      <table><thead><tr><th>#</th><th>Modelo</th><th class="r">Clase</th><th class="r">Stock</th><th class="r">Vendido 6m</th><th class="r">Uds/mes</th><th class="r">Cobertura</th><th class="r">% acum.</th><th class="r">Alerta</th></tr></thead><tbody id="tb-cat"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REABASTO ===== -->
+<div id="sec-reabasto" class="sec">
+  <div class="shdr"><div class="stitle">Plan de reabastecimiento — 14 modelos</div><div class="scnt">Clase A y B con cobertura &lt;3 meses · ordenado por urgencia</div></div>
+  <div class="kgrid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kcard re"><div class="klbl">⚡ Críticos · A &lt;1m</div><div class="kval" style="color:var(--crit)">3</div><div class="ksub">quiebre de stock inminente</div></div>
+    <div class="kcard am"><div class="klbl">Urgentes · A+B &lt;3m</div><div class="kval" style="color:var(--exc)">14</div><div class="ksub">modelos A+B con bajo stock</div></div>
+    <div class="kcard tl"><div class="klbl">Más urgente</div><div class="kval" style="color:var(--A);font-size:14px">Travel Backpack</div><div class="ksub">424 uds/mes · 0.1 meses restantes</div></div>
+    <div class="kcard"><div class="klbl">Ventas mensuales en riesgo</div><div class="kval">~5.2k</div><div class="ksub">uds/mes en modelos con &lt;1m stock</div></div>
+  </div>
+  <div class="tcard">
+    <div class="thead2"><div><div class="ttitle">Modelos A y B con cobertura &lt;3 meses</div><div class="tdesc">Menor cobertura = mayor urgencia · ⚡ = quiebre inminente (Clase A &lt;1m)</div></div><span class="tbadge bcrit">14 modelos · acción urgente</span></div>
+    <div class="tscroll" style="max-height:560px"><table><thead><tr><th>Modelo</th><th class="r">Clase</th><th class="r">Stock</th><th class="r">Vendido 6m</th><th class="r">Uds/mes</th><th class="r">Cobertura</th><th class="r">Alerta</th></tr></thead><tbody id="tb-rea"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ===== SOBRESTOCK ===== -->
+<div id="sec-sobrestock" class="sec">
+  <div class="shdr"><div class="stitle">Sobrestock — capital atrapado</div><div class="scnt">Cobertura &gt;12 meses o sin ventas · 36 modelos</div></div>
+  <div class="kgrid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kcard am"><div class="klbl">Con cob. &gt;12m</div><div class="kval" style="color:var(--exc)">34</div><div class="ksub">modelos con exceso de stock</div></div>
+    <div class="kcard"><div class="klbl">Muertos (0 ventas)</div><div class="kval" style="color:#6b7280">2</div><div class="ksub">modelos sin ninguna venta</div></div>
+    <div class="kcard am"><div class="klbl">Total candidatos</div><div class="kval" style="color:var(--exc)">36</div><div class="ksub">modelos a liquidar o reducir</div></div>
+    <div class="kcard re"><div class="klbl">Mayor problema</div><div class="kval" style="color:var(--crit);font-size:13px">Eco Bag</div><div class="ksub">424 uds · 149.8 meses cobertura</div></div>
+  </div>
+  <div class="tcard">
+    <div class="fbar">
+      <input class="fsrch" type="text" placeholder="Buscar modelo..." id="srch-sob" oninput="filterSob()">
+      <select class="fsel" id="sel-sob-abc" onchange="filterSob()"><option value="">Todas las clases</option><option value="A">Clase A</option><option value="B">Clase B</option><option value="C">Clase C</option></select>
+      <span class="fcnt" id="cnt-sob">36 modelos</span>
+    </div>
+    <div class="tscroll" style="max-height:640px"><table><thead><tr><th>Modelo</th><th class="r">Clase</th><th class="r">Stock</th><th class="r">Vendido 6m</th><th class="r">Uds/mes</th><th class="r">Cobertura</th><th class="r">Diagnóstico</th></tr></thead><tbody id="tb-sob"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ===== MUERTO ===== -->
+<div id="sec-muerto" class="sec">
+  <div class="shdr"><div class="stitle">Inventario muerto — SKUs sin venta</div><div class="scnt">Todas las variantes con stock &gt;0 y 0 ventas en 6 meses · Nov 2025–Abr 2026</div></div>
+  <div class="kgrid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kcard"><div class="klbl">Total SKUs muertos</div><div class="kval">306</div><div class="ksub">variantes con 0 ventas y stock &gt;0</div></div>
+    <div class="kcard re"><div class="klbl">Unidades inmovilizadas</div><div class="kval" style="color:var(--crit)">2,209</div><div class="ksub">unidades sin ningún movimiento</div></div>
+    <div class="kcard tl"><div class="klbl">Muertos en Clase A</div><div class="kval" style="color:var(--A)">104</div><div class="ksub">1,085 uds · variantes de modelos estrella</div></div>
+    <div class="kcard pu"><div class="klbl">Muertos en Clase B</div><div class="kval" style="color:var(--B)">40</div><div class="ksub">296 uds · variantes de modelos promedio</div></div>
+  </div>
+  <div class="tcard">
+    <div class="fbar">
+      <input class="fsrch" type="text" placeholder="Buscar modelo, SKU, color, talla..." id="srch-muer" oninput="filterMuer()">
+      <select class="fsel" id="sel-muer-abc" onchange="filterMuer()"><option value="">Todas las clases</option><option value="A">Clase A</option><option value="B">Clase B</option><option value="C">Clase C</option></select>
+      <select class="fsel" id="sel-muer-gen" onchange="filterMuer()"><option value="">Todos los géneros</option><option value="DAMA">Dama</option><option value="KIDS">Kids</option><option value="CABALLERO">Caballero</option></select>
+      <span class="fcnt" id="cnt-muer">306 SKUs</span>
+    </div>
+    <div class="tscroll" style="max-height:700px"><table><thead><tr><th>SKU</th><th>Modelo</th><th class="r">Clase</th><th>Género</th><th>Talla</th><th>Color</th><th class="r">Stock inmovilizado</th></tr></thead><tbody id="tb-muer"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ===== NUEVOS ===== -->
+<div id="sec-nuevos" class="sec">
+  <div class="shdr"><div class="stitle">Modelos nuevos — 6 en seguimiento</div><div class="scnt">Stock actual · ventas por mes registradas hasta mayo 2026</div></div>
+  <div style="background:var(--navy2);border-radius:var(--r);padding:11px 16px;margin-bottom:16px;font-size:12px;color:#8aaccf;border:1px solid #1e3a60">⚡ Lanzamientos recientes sin historial suficiente para clasificación ABC. Se muestran stock disponible y las ventas registradas mes a mes. Mínimo 3 meses de data para análisis formal.</div>
+  <div class="ngrid" id="cards-nuevos"></div>
+</div>
+
+<!-- ===== PLAN ===== -->
+<div id="sec-plan" class="sec">
+  <div class="shdr"><div class="stitle">Plan de acción</div><div class="scnt">Basado en clasificación ABC Pareto + Índice de Cobertura · 105 modelos</div></div>
+  <div class="pgrid">
+    <div class="pcard r">
+      <div class="ptag">🔴 Prioridad 1 · Esta semana</div>
+      <div class="ptitle">Reabastecimiento urgente — 3 quiebres inminentes (Clase A)</div>
+      <div class="pbody">Travel Backpack (0.1m), Tote Bag (0.7m) y Hat (0.9m) son Clase A con quiebre en días. Concentran ~865 uds/mes de demanda sin stock suficiente.</div>
+      <div class="pitems">
+        <div class="pi">Travel Backpack: orden urgente hoy — 424 uds/mes, stock para menos de 4 días</div>
+        <div class="pi">Tote Bag: reponer esta semana — 306 uds/mes, quiebre en 5 días</div>
+        <div class="pi">Hat: reponer esta semana — 133 uds/mes, quiebre en 6 días</div>
+        <div class="pi">Toalla Estampada (cob 1.1m): orden en los próximos 7 días</div>
+        <div class="pi">Redistribuir desde Taller (mayor stock) hacia Grieta y Sambil prioritariamente</div>
+      </div>
+      <div class="pimp">💰 Protege el 80% de las ventas totales (Clase A)</div>
+    </div>
+    <div class="pcard g">
+      <div class="ptag">🟢 Prioridad 1 · Este mes</div>
+      <div class="ptitle">Reabastecimiento preventivo — 11 modelos A+B adicionales</div>
+      <div class="pbody">Dry Bag 30L (1.5m), Toalla Clip 2.0 (2.5m), Dry Bag 5L (2.1m) y modelos B como Sun Hat (1.4m), Kid Hat (1.7m) con ventana de acción antes de quiebre.</div>
+      <div class="pitems">
+        <div class="pi">Dry Bag 30L y 5L: reponer en 2 semanas — demanda sostenida clase A</div>
+        <div class="pi">Toalla Clip 2.0: reposición preventiva — 216 uds/mes, 2.5m cobertura</div>
+        <div class="pi">Bucket Hat, Mesh Cap: prácticamente sin stock (6 y 7 uds respectivamente)</div>
+        <div class="pi">Sun Hat, Kid Hat, Pro Cap, Travel Bag 40L y 18L: reponer en 3 semanas</div>
+      </div>
+      <div class="pimp">📦 14 modelos A+B sin quiebre = ingresos protegidos</div>
+    </div>
+    <div class="pcard a">
+      <div class="ptag">🟡 Prioridad 2 · Este mes</div>
+      <div class="ptitle">Reducir sobrestock — 36 modelos con capital atrapado</div>
+      <div class="pbody">Vivi Original (46.9m), Helen Bio Move (69.3m), Advance Geo Maya (69.3m), Eco Bag (149.8m). Short Playa (16.3m, Clase A) y Cuadro Tag (13.4m, Clase A) también críticos.</div>
+      <div class="pitems">
+        <div class="pi">Eco Bag, Advance Geo Maya, Helen BioMove: descuento 60–70% inmediato</div>
+        <div class="pi">Cuadro Tag (13.4m, Clase A): activar descuento progresivo, no reponer</div>
+        <div class="pi">Short Playa (16.3m, Clase A): revisar SKUs muertos individuales por color</div>
+        <div class="pi">Dominic Bio Move, Sabri Sport, Andre Original: 28–38m cobertura → liquidar</div>
+        <div class="pi">Classic Polo (10.6m), Clasica Daily 3.0 (10.6m): frenar reposición</div>
+      </div>
+      <div class="pimp">📉 Meta: reducir stock de &gt;12m en 40% este trimestre</div>
+    </div>
+    <div class="pcard b">
+      <div class="ptag">🔵 Prioridad 2 · Estrategia</div>
+      <div class="ptitle">Tienda Margarita: destino estratégico para exceso de inventario</div>
+      <div class="pbody">La próxima apertura en Margarita es una oportunidad para drenar sobrestock sin necesidad de descuentos agresivos. Modelos con exceso de cobertura pueden ser el surtido inicial de la nueva tienda.</div>
+      <div class="pitems">
+        <div class="pi">Priorizar envío de modelos C con sobrestock: Vivi Original, Legging Mova, Top Mova</div>
+        <div class="pi">Modelos con cobertura 15–30m: surtido ideal para tienda nueva (amplia variedad)</div>
+        <div class="pi">Evitar enviar modelos críticos o con quiebre de stock (A &lt;3m)</div>
+        <div class="pi">Clasica Original (168 SKUs): variantes sin venta localmente pueden tener demanda nueva en Margarita</div>
+        <div class="pi">Definir un paquete de 800–1,200 uds de sobrestock como surtido de apertura</div>
+      </div>
+      <div class="pimp">🏪 Apertura Margarita = salida natural para inventario de lenta rotación</div>
+    </div>
+    <div class="pcard b">
+      <div class="ptag">🔵 Prioridad 2 · Portafolio</div>
+      <div class="ptitle">Auditoría de variantes — 306 SKUs muertos en stock</div>
+      <div class="pbody">306 SKUs sin ninguna venta en 6 meses acumulan 2,209 uds. De estos, 104 SKUs muertos pertenecen a modelos Clase A — variantes que se crearon pero el mercado no absorbió.</div>
+      <div class="pitems">
+        <div class="pi">Short Sport KIDS T4 Azul Marino (84 uds, Clase A): liquidar o enviar a Margarita</div>
+        <div class="pi">Clasica Original DAMA L Verde Militar (50 uds): descontinuar ese color/talla</div>
+        <div class="pi">Short Playa KIDS Azul Verdoso y Marrón: múltiples SKUs de 32 uds c/u → liquidar</div>
+        <div class="pi">Motion Loop Clásica y Mafe (muertos totales): evaluar descontinuación definitiva</div>
+      </div>
+      <div class="pimp">🗂️ Depurar 306 SKUs = portafolio más limpio y fácil de gestionar</div>
+    </div>
+    <div class="pcard gr">
+      <div class="ptag">⚪ Prioridad 3 · Portafolio</div>
+      <div class="ptitle">Simplificar catálogo — concentrar en lo que vende</div>
+      <div class="pbody">El 80% de las ventas se concentra en solo 28 modelos (Clase A). Los 48 modelos Clase C generan apenas el 5.1% de ventas pero requieren gestión, espacio y capital.</div>
+      <div class="pitems">
+        <div class="pi">Evaluar descontinuar los 10 modelos C con menor volumen y menor stock</div>
+        <div class="pi">Clasica Original: 168 SKUs activos — reducir a los 50 más vendidos</div>
+        <div class="pi">Rio Original: 222 SKUs — mismo ejercicio de depuración de variantes</div>
+        <div class="pi">Mar Original: 229 SKUs — auditar colores y tallas sin movimiento</div>
+        <div class="pi">Meta: portafolio de 80 modelos con máximo 120 SKUs por modelo estrella</div>
+      </div>
+      <div class="pimp">🎯 Menos variantes = menos capital paralizado + mejor gestión</div>
+    </div>
+  </div>
+  <div class="exec">
+    <div>
+      <div class="exh g">✅ Lo que está funcionando</div>
+      <div class="exi">Mar Original — clase A, 8,745 uds vendidas, 4.5m cobertura sana. Modelo más sano</div>
+      <div class="exi">Rio Original — clase A, 4,380 uds, 6.4m. Segunda estrella con stock bien calibrado</div>
+      <div class="exi">Grieta + Sambil generan el 61% de ventas — tiendas motor bien identificadas</div>
+      <div class="exi">Toallas (Sport, Estampada, Playa, Clip 2.0) — clase A con rotación excelente</div>
+      <div class="exi">Dry Bags, Tote Bag, Jacket, Explore Pants — alta demanda sostenida Clase A</div>
+      <div class="exi">80% de ventas en 28 modelos — foco de gestión claro y accionable</div>
+    </div>
+    <div>
+      <div class="exh r">⚠️ Requiere acción urgente</div>
+      <div class="exi">Travel Backpack: quiebre en días — acción esta semana o se pierde la venta</div>
+      <div class="exi">306 SKUs sin venta = 2,209 uds de capital inmovilizado en variantes sin demanda</div>
+      <div class="exi">36 modelos con sobrestock &gt;12m = capital atrapado en inventario de lenta salida</div>
+      <div class="exi">Eco Bag (149m), Helen BioMove (69m), Advance GeoMaya (69m) → liquidar ya</div>
+      <div class="exi">Short Playa Clase A: 16.3m cobertura — frenar reposición y drenar variantes muertas</div>
+      <div class="exi">Apertura Margarita: planificar surtido desde sobrestock actual, no comprar nuevo</div>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="foot"> ABC Pareto + Índice de Cobertura · Nov 2025–Abr 2026 · 105 modelos · 58,990 uds en stock activo</div>
+
+<script>
+const MODELOS=[{"m": "MAR ORIGINAL", "s": 6624, "v": 8745, "vm": 1457.5, "cob": 4.5, "skus": 229, "abc": "A", "cp": 14.8, "al": []}, {"m": "RIO ORIGINAL", "s": 4669, "v": 4380, "vm": 730.0, "cob": 6.4, "skus": 222, "abc": "A", "cp": 22.2, "al": []}, {"m": "CUADRO JACKET 2.0", "s": 3814, "v": 3232, "vm": 538.67, "cob": 7.1, "skus": 79, "abc": "A", "cp": 27.7, "al": []}, {"m": "TOALLA ESTAMPADA", "s": 517, "v": 2771, "vm": 461.83, "cob": 1.1, "skus": 8, "abc": "A", "cp": 32.4, "al": []}, {"m": "TRAVEL BACKPACK", "s": 52, "v": 2543, "vm": 423.83, "cob": 0.1, "skus": 2, "abc": "A", "cp": 36.7, "al": ["CRÍTICO"]}, {"m": "EXPLORE PANTS", "s": 2170, "v": 2222, "vm": 370.33, "cob": 5.9, "skus": 90, "abc": "A", "cp": 40.5, "al": []}, {"m": "TOALLA SPORT", "s": 1162, "v": 2196, "vm": 366.0, "cob": 3.2, "skus": 11, "abc": "A", "cp": 44.2, "al": []}, {"m": "JACKET", "s": 1709, "v": 2192, "vm": 365.33, "cob": 4.7, "skus": 71, "abc": "A", "cp": 47.9, "al": []}, {"m": "CLASICA ORIGINAL", "s": 3052, "v": 1864, "vm": 310.67, "cob": 9.8, "skus": 168, "abc": "A", "cp": 51.0, "al": ["EXCESO"]}, {"m": "TOTE BAG", "s": 224, "v": 1835, "vm": 305.83, "cob": 0.7, "skus": 6, "abc": "A", "cp": 54.1, "al": ["CRÍTICO"]}, {"m": "DRY BAG 30L", "s": 450, "v": 1746, "vm": 291.0, "cob": 1.5, "skus": 9, "abc": "A", "cp": 57.1, "al": []}, {"m": "TOALLA PLAYA", "s": 1057, "v": 1598, "vm": 266.33, "cob": 4.0, "skus": 11, "abc": "A", "cp": 59.8, "al": []}, {"m": "TOALLA CLIP 2.0", "s": 548, "v": 1294, "vm": 215.67, "cob": 2.5, "skus": 8, "abc": "A", "cp": 62.0, "al": []}, {"m": "SHORT PLAYA ESTAMPADO", "s": 1074, "v": 997, "vm": 166.17, "cob": 6.5, "skus": 65, "abc": "A", "cp": 63.7, "al": []}, {"m": "DRY BAG 5L", "s": 351, "v": 991, "vm": 165.17, "cob": 2.1, "skus": 8, "abc": "A", "cp": 65.4, "al": []}, {"m": "SHORT PLAYA", "s": 2314, "v": 852, "vm": 142.0, "cob": 16.3, "skus": 110, "abc": "A", "cp": 66.8, "al": ["EXCESO"]}, {"m": "SHORT SPORT", "s": 1337, "v": 850, "vm": 141.67, "cob": 9.4, "skus": 52, "abc": "A", "cp": 68.2, "al": ["EXCESO"]}, {"m": "TOALLA ESTAMPADA 2.0", "s": 537, "v": 824, "vm": 137.33, "cob": 3.9, "skus": 7, "abc": "A", "cp": 69.6, "al": []}, {"m": "HAT", "s": 126, "v": 799, "vm": 133.17, "cob": 0.9, "skus": 4, "abc": "A", "cp": 71.0, "al": ["CRÍTICO"]}, {"m": "MINI BAG", "s": 351, "v": 682, "vm": 113.67, "cob": 3.1, "skus": 5, "abc": "A", "cp": 72.1, "al": []}, {"m": "MAFE ORIGINAL", "s": 770, "v": 675, "vm": 112.5, "cob": 6.8, "skus": 45, "abc": "A", "cp": 73.3, "al": []}, {"m": "CLASSIC POLO", "s": 1173, "v": 661, "vm": 110.17, "cob": 10.6, "skus": 27, "abc": "A", "cp": 74.4, "al": ["EXCESO"]}, {"m": "CLASICA DAILY 3.0", "s": 1057, "v": 597, "vm": 99.5, "cob": 10.6, "skus": 30, "abc": "A", "cp": 75.4, "al": ["EXCESO"]}, {"m": "CUADRO TAG", "s": 1254, "v": 562, "vm": 93.67, "cob": 13.4, "skus": 8, "abc": "A", "cp": 76.4, "al": ["EXCESO"]}, {"m": "TRAVEL BAG 40L", "s": 236, "v": 559, "vm": 93.17, "cob": 2.5, "skus": 5, "abc": "A", "cp": 77.3, "al": []}, {"m": "CLASICA SPORT", "s": 666, "v": 537, "vm": 89.5, "cob": 7.4, "skus": 43, "abc": "A", "cp": 78.2, "al": []}, {"m": "BUCKET HAT ESTAMPADO", "s": 280, "v": 518, "vm": 86.33, "cob": 3.2, "skus": 5, "abc": "A", "cp": 79.1, "al": []}, {"m": "BASIC LINE OVERSIZED", "s": 563, "v": 513, "vm": 85.5, "cob": 6.6, "skus": 18, "abc": "A", "cp": 80.0, "al": []}, {"m": "FALDA SARA", "s": 702, "v": 479, "vm": 79.83, "cob": 8.8, "skus": 45, "abc": "B", "cp": 80.8, "al": ["EXCESO"]}, {"m": "DRY BAG 10L", "s": 452, "v": 475, "vm": 79.17, "cob": 5.7, "skus": 6, "abc": "B", "cp": 81.6, "al": []}, {"m": "BASIC LINE CROP TEE", "s": 580, "v": 473, "vm": 78.83, "cob": 7.4, "skus": 14, "abc": "B", "cp": 82.4, "al": []}, {"m": "SUNNY CORD 2.0", "s": 585, "v": 449, "vm": 74.83, "cob": 7.8, "skus": 7, "abc": "B", "cp": 83.1, "al": []}, {"m": "PONCHO", "s": 382, "v": 448, "vm": 74.67, "cob": 5.1, "skus": 6, "abc": "B", "cp": 83.9, "al": []}, {"m": "TRAVEL BAG 18L", "s": 184, "v": 429, "vm": 71.5, "cob": 2.6, "skus": 4, "abc": "B", "cp": 84.6, "al": []}, {"m": "ZOE ORIGINAL", "s": 940, "v": 429, "vm": 71.5, "cob": 13.1, "skus": 81, "abc": "B", "cp": 85.4, "al": ["EXCESO"]}, {"m": "CREW SOCKS", "s": 213, "v": 385, "vm": 64.17, "cob": 3.3, "skus": 5, "abc": "B", "cp": 86.0, "al": []}, {"m": "KID HAT", "s": 105, "v": 381, "vm": 63.5, "cob": 1.7, "skus": 3, "abc": "B", "cp": 86.7, "al": []}, {"m": "SUN HAT", "s": 90, "v": 377, "vm": 62.83, "cob": 1.4, "skus": 2, "abc": "B", "cp": 87.3, "al": []}, {"m": "SHORT SPORT R1", "s": 586, "v": 365, "vm": 60.83, "cob": 9.6, "skus": 28, "abc": "B", "cp": 87.9, "al": ["EXCESO"]}, {"m": "MIKA SPORT LITE", "s": 765, "v": 342, "vm": 57.0, "cob": 13.4, "skus": 30, "abc": "B", "cp": 88.5, "al": ["EXCESO"]}, {"m": "CLASSIC BACKPACK", "s": 336, "v": 325, "vm": 54.17, "cob": 6.2, "skus": 5, "abc": "B", "cp": 89.0, "al": []}, {"m": "HEADBAND", "s": 696, "v": 324, "vm": 54.0, "cob": 12.9, "skus": 7, "abc": "B", "cp": 89.6, "al": ["EXCESO"]}, {"m": "NOAH SPORT LITE", "s": 267, "v": 296, "vm": 49.33, "cob": 5.4, "skus": 25, "abc": "B", "cp": 90.1, "al": []}, {"m": "BUCKET HAT", "s": 6, "v": 295, "vm": 49.17, "cob": 0.1, "skus": 2, "abc": "B", "cp": 90.6, "al": []}, {"m": "PRO CAP", "s": 107, "v": 293, "vm": 48.83, "cob": 2.2, "skus": 3, "abc": "B", "cp": 91.1, "al": []}, {"m": "BASIC LINE PANT", "s": 277, "v": 220, "vm": 36.67, "cob": 7.6, "skus": 10, "abc": "B", "cp": 91.5, "al": []}, {"m": "ACTIVE DUO", "s": 483, "v": 214, "vm": 35.67, "cob": 13.5, "skus": 29, "abc": "B", "cp": 91.8, "al": ["EXCESO"]}, {"m": "DAD CAP", "s": 144, "v": 205, "vm": 34.17, "cob": 4.2, "skus": 4, "abc": "B", "cp": 92.2, "al": []}, {"m": "SABRI SPORT", "s": 932, "v": 200, "vm": 33.33, "cob": 28.0, "skus": 34, "abc": "B", "cp": 92.5, "al": ["EXCESO"]}, {"m": "ANDRE ORIGINAL", "s": 923, "v": 198, "vm": 33.0, "cob": 28.0, "skus": 38, "abc": "B", "cp": 92.8, "al": ["EXCESO"]}, {"m": "FIT CAP", "s": 217, "v": 193, "vm": 32.17, "cob": 6.7, "skus": 4, "abc": "B", "cp": 93.2, "al": []}, {"m": "CAMO CAP", "s": 177, "v": 193, "vm": 32.17, "cob": 5.5, "skus": 3, "abc": "B", "cp": 93.5, "al": []}, {"m": "EXPLORE SHORT", "s": 724, "v": 185, "vm": 30.83, "cob": 23.5, "skus": 43, "abc": "B", "cp": 93.8, "al": ["EXCESO"]}, {"m": "MESH CAP", "s": 7, "v": 178, "vm": 29.67, "cob": 0.2, "skus": 4, "abc": "B", "cp": 94.1, "al": []}, {"m": "PONCHO ADULTO", "s": 176, "v": 160, "vm": 26.67, "cob": 6.6, "skus": 3, "abc": "B", "cp": 94.4, "al": []}, {"m": "URBAN COTTON OVERSIZED COLOR BLOCK", "s": 78, "v": 158, "vm": 26.33, "cob": 3.0, "skus": 6, "abc": "B", "cp": 94.6, "al": []}, {"m": "LEGGING MOVA", "s": 410, "v": 153, "vm": 25.5, "cob": 16.1, "skus": 29, "abc": "B", "cp": 94.9, "al": ["EXCESO"]}, {"m": "VIVI ORIGINAL", "s": 1180, "v": 151, "vm": 25.17, "cob": 46.9, "skus": 53, "abc": "C", "cp": 95.2, "al": ["EXCESO"]}, {"m": "CLÁSICA SPORT", "s": 153, "v": 148, "vm": 24.67, "cob": 6.2, "skus": 24, "abc": "C", "cp": 95.4, "al": []}, {"m": "TOP MOVA", "s": 441, "v": 147, "vm": 24.5, "cob": 18.0, "skus": 30, "abc": "C", "cp": 95.7, "al": ["EXCESO"]}, {"m": "RETRO VZLA", "s": 139, "v": 146, "vm": 24.33, "cob": 5.7, "skus": 66, "abc": "C", "cp": 95.9, "al": []}, {"m": "ANDRE MOTION", "s": 187, "v": 142, "vm": 23.67, "cob": 7.9, "skus": 24, "abc": "C", "cp": 96.1, "al": []}, {"m": "VESTIDO GEMMA", "s": 533, "v": 141, "vm": 23.5, "cob": 22.7, "skus": 22, "abc": "C", "cp": 96.4, "al": ["EXCESO"]}, {"m": "MAYA SPORT LITE", "s": 550, "v": 140, "vm": 23.33, "cob": 23.6, "skus": 30, "abc": "C", "cp": 96.6, "al": ["EXCESO"]}, {"m": "EXPLORE CAP", "s": 155, "v": 136, "vm": 22.67, "cob": 6.8, "skus": 3, "abc": "C", "cp": 96.9, "al": []}, {"m": "BASIC LINE SHORT", "s": 478, "v": 133, "vm": 22.17, "cob": 21.6, "skus": 10, "abc": "C", "cp": 97.1, "al": ["EXCESO"]}, {"m": "VISERA", "s": 23, "v": 132, "vm": 22.0, "cob": 1.0, "skus": 3, "abc": "C", "cp": 97.3, "al": []}, {"m": "DOMINIC BIO MOVE", "s": 840, "v": 130, "vm": 21.67, "cob": 38.8, "skus": 25, "abc": "C", "cp": 97.5, "al": ["EXCESO"]}, {"m": "ADVANCE GEO DOMINIC", "s": 357, "v": 99, "vm": 16.5, "cob": 21.6, "skus": 15, "abc": "C", "cp": 97.7, "al": ["EXCESO"]}, {"m": "ZENIT REDONDO", "s": 104, "v": 98, "vm": 16.33, "cob": 6.4, "skus": 2, "abc": "C", "cp": 97.9, "al": []}, {"m": "CLASICA MOTION", "s": 32, "v": 85, "vm": 14.17, "cob": 2.3, "skus": 9, "abc": "C", "cp": 98.0, "al": []}, {"m": "HELEN BIO MOVE", "s": 959, "v": 83, "vm": 13.83, "cob": 69.3, "skus": 25, "abc": "C", "cp": 98.1, "al": ["EXCESO"]}, {"m": "MAFE ADVANCE", "s": 171, "v": 82, "vm": 13.67, "cob": 12.5, "skus": 14, "abc": "C", "cp": 98.3, "al": ["EXCESO"]}, {"m": "CLASICA ADVANCE", "s": 63, "v": 74, "vm": 12.33, "cob": 5.1, "skus": 9, "abc": "C", "cp": 98.4, "al": []}, {"m": "FLEX COVER", "s": 174, "v": 73, "vm": 12.17, "cob": 14.3, "skus": 19, "abc": "C", "cp": 98.5, "al": ["EXCESO"]}, {"m": "URBAN COTTON OVERSIZED OUTSIDE", "s": 73, "v": 63, "vm": 10.5, "cob": 7.0, "skus": 6, "abc": "C", "cp": 98.6, "al": []}, {"m": "URBAN COTTON TOP SUNSET", "s": 81, "v": 63, "vm": 10.5, "cob": 7.7, "skus": 5, "abc": "C", "cp": 98.7, "al": []}, {"m": "DANI ORIGINAL", "s": 80, "v": 60, "vm": 10.0, "cob": 8.0, "skus": 23, "abc": "C", "cp": 98.8, "al": []}, {"m": "ZENIT CUADRADO", "s": 97, "v": 56, "vm": 9.33, "cob": 10.4, "skus": 2, "abc": "C", "cp": 98.9, "al": ["EXCESO"]}, {"m": "URBAN COTTON TOP VINTAGE GRIS", "s": 173, "v": 55, "vm": 9.17, "cob": 18.9, "skus": 10, "abc": "C", "cp": 99.0, "al": ["EXCESO"]}, {"m": "URBAN COTTON OVERSIZED HORIZONTE", "s": 103, "v": 50, "vm": 8.33, "cob": 12.4, "skus": 6, "abc": "C", "cp": 99.1, "al": ["EXCESO"]}, {"m": "TOALLA WAFFLE", "s": 27, "v": 49, "vm": 8.17, "cob": 3.3, "skus": 3, "abc": "C", "cp": 99.2, "al": []}, {"m": "URBAN COTTON OVERSIZED VINTAGE VERDE", "s": 77, "v": 48, "vm": 8.0, "cob": 9.6, "skus": 6, "abc": "C", "cp": 99.3, "al": ["EXCESO"]}, {"m": "URBAN COTTON TOP SAY YES", "s": 188, "v": 45, "vm": 7.5, "cob": 25.1, "skus": 10, "abc": "C", "cp": 99.4, "al": ["EXCESO"]}, {"m": "CLASICA DAILY 2.0", "s": 123, "v": 40, "vm": 6.67, "cob": 18.4, "skus": 34, "abc": "C", "cp": 99.4, "al": ["EXCESO"]}, {"m": "MANGA LARGA DAILY 2.0", "s": 81, "v": 36, "vm": 6.0, "cob": 13.5, "skus": 35, "abc": "C", "cp": 99.5, "al": ["EXCESO"]}, {"m": "URBAN COTTON OVERSIZED SUNSET", "s": 97, "v": 36, "vm": 6.0, "cob": 16.2, "skus": 6, "abc": "C", "cp": 99.5, "al": ["EXCESO"]}, {"m": "ADVANCE GEO MAYA", "s": 381, "v": 33, "vm": 5.5, "cob": 69.3, "skus": 15, "abc": "C", "cp": 99.6, "al": ["EXCESO"]}, {"m": "DANI ACTIVE", "s": 18, "v": 33, "vm": 5.5, "cob": 3.3, "skus": 5, "abc": "C", "cp": 99.7, "al": []}, {"m": "CUADRO BAND ELASTIC", "s": 173, "v": 30, "vm": 5.0, "cob": 34.6, "skus": 7, "abc": "C", "cp": 99.7, "al": ["EXCESO"]}, {"m": "MIA ORIGINAL", "s": 13, "v": 26, "vm": 4.33, "cob": 3.0, "skus": 5, "abc": "C", "cp": 99.8, "al": []}, {"m": "URBAN COTTON TOP GRAY BLOCK", "s": 84, "v": 24, "vm": 4.0, "cob": 21.0, "skus": 5, "abc": "C", "cp": 99.8, "al": ["EXCESO"]}, {"m": "UNIHOODIE", "s": 8, "v": 24, "vm": 4.0, "cob": 2.0, "skus": 3, "abc": "C", "cp": 99.8, "al": []}, {"m": "ECO BAG", "s": 424, "v": 17, "vm": 2.83, "cob": 149.8, "skus": 5, "abc": "C", "cp": 99.9, "al": ["EXCESO"]}, {"m": "URBAN COTTON OVERSIZED VINTAGE GRIS", "s": 109, "v": 16, "vm": 2.67, "cob": 40.8, "skus": 6, "abc": "C", "cp": 99.9, "al": ["EXCESO"]}, {"m": "SUNNY CORD ORIGINAL", "s": 123, "v": 14, "vm": 2.33, "cob": 52.8, "skus": 1, "abc": "C", "cp": 99.9, "al": ["EXCESO"]}, {"m": "TOALLA CLIP ORIGINAL", "s": 2, "v": 10, "vm": 1.67, "cob": 1.2, "skus": 2, "abc": "C", "cp": 99.9, "al": []}, {"m": "CLASICA ACTIVE", "s": 11, "v": 9, "vm": 1.5, "cob": 7.3, "skus": 5, "abc": "C", "cp": 99.9, "al": []}, {"m": "MAFE SPORT", "s": 21, "v": 8, "vm": 1.33, "cob": 15.8, "skus": 11, "abc": "C", "cp": 100.0, "al": ["EXCESO"]}, {"m": "SHORT R2", "s": 51, "v": 8, "vm": 1.33, "cob": 38.3, "skus": 22, "abc": "C", "cp": 100.0, "al": ["EXCESO"]}, {"m": "CLASICA DAILY", "s": 5, "v": 6, "vm": 1.0, "cob": 5.0, "skus": 4, "abc": "C", "cp": 100.0, "al": []}, {"m": "CLASICA RETRO 2.0", "s": 2, "v": 5, "vm": 0.83, "cob": 2.4, "skus": 2, "abc": "C", "cp": 100.0, "al": []}, {"m": "MANGA LARGA DAILY", "s": 4, "v": 5, "vm": 0.83, "cob": 4.8, "skus": 3, "abc": "C", "cp": 100.0, "al": []}, {"m": "MOTION LOOP MAFE", "s": 68, "v": 0, "vm": 0.0, "cob": 9999.0, "skus": 9, "abc": "C", "cp": 100.0, "al": ["MUERTO"]}, {"m": "MOTION LOOP CLASICA", "s": 73, "v": 0, "vm": 0.0, "cob": 9999.0, "skus": 9, "abc": "C", "cp": 100.0, "al": ["MUERTO"]}];
+const DEAD=[{"k": "SHONRKI12T4", "m": "SHORT SPORT", "abc": "A", "g": "KIDS", "t": "4", "c": "Azul Marino", "s": 84}, {"k": "CLAMIDA66TL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "L", "c": "Verde Militar", "s": 50}, {"k": "MARMIKI13T14", "m": "MAR ORIGINAL", "abc": "A", "g": "KIDS", "t": "14", "c": "Azul Rey", "s": 46}, {"k": "HELBFDA30TL", "m": "HELEN BIO MOVE", "abc": "C", "g": "DAMA", "t": "L", "c": "Gris Claro", "s": 42}, {"k": "DOMBFCA206TXL", "m": "DOMINIC BIO MOVE", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Azul Grisáceo", "s": 38}, {"k": "DOMBFCA205TXL", "m": "DOMINIC BIO MOVE", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Lima", "s": 36}, {"k": "MARMIDA53TXS", "m": "MAR ORIGINAL", "abc": "A", "g": "DAMA", "t": "XS", "c": "Rosado Pastel", "s": 35}, {"k": "HELBFDA205TL", "m": "HELEN BIO MOVE", "abc": "C", "g": "DAMA", "t": "L", "c": "Lima", "s": 33}, {"k": "SHOUNKI186T10", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "10", "c": "Azul Verdoso", "s": 32}, {"k": "SHOUNKI186T12", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "12", "c": "Azul Verdoso", "s": 32}, {"k": "SHOUNKI187T10", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "10", "c": "Azul Pizarra", "s": 32}, {"k": "SHOUNKI187T14", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "14", "c": "Azul Pizarra", "s": 32}, {"k": "SHOUNKI187T12", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "12", "c": "Azul Pizarra", "s": 32}, {"k": "SHOUNKI186T8", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "8", "c": "Azul Verdoso", "s": 32}, {"k": "SHOUNKI186T14", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "14", "c": "Azul Verdoso", "s": 32}, {"k": "SHOUNKI38T12", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "12", "c": "Marron", "s": 32}, {"k": "SHOUNKI187T8", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "8", "c": "Azul Pizarra", "s": 32}, {"k": "SHOUNKI38T10", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "10", "c": "Marron", "s": 32}, {"k": "SHOUNKI38T8", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "8", "c": "Marron", "s": 32}, {"k": "SHOUNKI38T14", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "14", "c": "Marron", "s": 32}, {"k": "MIKFNDA24TXL", "m": "MIKA SPORT LITE", "abc": "B", "g": "DAMA", "t": "XL", "c": "Coral Neón", "s": 31}, {"k": "SHONRKI66T6", "m": "SHORT SPORT", "abc": "A", "g": "KIDS", "t": "6", "c": "Verde Militar", "s": 29}, {"k": "HELBFDA206TL", "m": "HELEN BIO MOVE", "abc": "C", "g": "DAMA", "t": "L", "c": "Azul Grisáceo", "s": 29}, {"k": "SHUNTDA31TS", "m": "SHORT SPORT R1", "abc": "B", "g": "DAMA", "t": "S", "c": "Gris Oscuro", "s": 29}, {"k": "SHOUNKI170T8", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "8", "c": "Cereza", "s": 26}, {"k": "EPNTKI33T12", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "12", "c": "Kaki", "s": 26}, {"k": "SHOUNKI170T14", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "14", "c": "Cereza", "s": 26}, {"k": "SHUNTDA31TL", "m": "SHORT SPORT R1", "abc": "B", "g": "DAMA", "t": "L", "c": "Gris Oscuro", "s": 25}, {"k": "BLCTCCKI210T14", "m": "BASIC LINE CROP TEE", "abc": "B", "g": "KIDS", "t": "", "c": "Ivory", "s": 24}, {"k": "GEOMACADA03TXL", "m": "ADVANCE GEO MAYA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Amarillo", "s": 22}, {"k": "CLAMIKI30T2", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "2", "c": "Gris Claro", "s": 22}, {"k": "CLAMIDA30TL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "L", "c": "Gris Claro", "s": 20}, {"k": "ANDMIDA66TXL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XL", "c": "Verde Militar", "s": 20}, {"k": "CLAMIDA30TXS", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "XS", "c": "Gris Claro", "s": 20}, {"k": "ANMSUDA15TXS", "m": "ANDRE MOTION", "abc": "C", "g": "DAMA", "t": "XS", "c": "Black", "s": 20}, {"k": "GEOMACADA43TL", "m": "ADVANCE GEO MAYA", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 19}, {"k": "TALGTADA166TXL", "m": "URBAN COTTON TOP SAY YES", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris", "s": 19}, {"k": "HELBFDA206TXS", "m": "HELEN BIO MOVE", "abc": "C", "g": "DAMA", "t": "XS", "c": "Azul Grisáceo", "s": 19}, {"k": "TALGTADA166TL", "m": "URBAN COTTON TOP SAY YES", "abc": "C", "g": "DAMA", "t": "L", "c": "Gris", "s": 18}, {"k": "GEOMACADA43TXL", "m": "ADVANCE GEO MAYA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Negro", "s": 18}, {"k": "GEODOCACA03T2XL", "m": "ADVANCE GEO DOMINIC", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Amarillo", "s": 18}, {"k": "ZOEMIKI16T4", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "4", "c": "Blanco", "s": 18}, {"k": "TALGOTADA12TXL", "m": "URBAN COTTON TOP VINTAGE GRIS", "abc": "C", "g": "DAMA", "t": "XL", "c": "Azul Marino", "s": 18}, {"k": "PANNTKI33T6", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "6", "c": "Kaki", "s": 16}, {"k": "ADUMMDA16TXL", "m": "ACTIVE DUO", "abc": "B", "g": "DAMA", "t": "XL", "c": "Blanco", "s": 16}, {"k": "SHOUNKI38T4", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "4", "c": "Marron", "s": 16}, {"k": "SHOUNKI38T2", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "2", "c": "Marron", "s": 16}, {"k": "SHOUNKI38T6", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "6", "c": "Marron", "s": 16}, {"k": "SHOUNKI187T6", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "6", "c": "Azul Pizarra", "s": 16}, {"k": "SHOUNKI186T6", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "6", "c": "Azul Verdoso", "s": 16}, {"k": "SHOUNKI186T4", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "4", "c": "Azul Verdoso", "s": 16}, {"k": "TALGOTACA167TXL", "m": "URBAN COTTON OVERSIZED VINTAGE GRIS", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "", "s": 15}, {"k": "SHOUNKI187T4", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "4", "c": "Azul Pizarra", "s": 14}, {"k": "ZOEMIKI70T4", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "4", "c": "Vinotinto", "s": 14}, {"k": "CLAMIKI13T2", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "2", "c": "Azul Rey", "s": 14}, {"k": "SHOUNKI170T4", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "4", "c": "Cereza", "s": 13}, {"k": "SHOUNKI170T2", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "2", "c": "Cereza", "s": 13}, {"k": "SARSPDA70TM", "m": "FALDA SARA", "abc": "B", "g": "DAMA", "t": "M", "c": "Vinotinto", "s": 13}, {"k": "ZOEMIKI70T6", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "6", "c": "Vinotinto", "s": 13}, {"k": "CLAMIKI70T6", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "6", "c": "Vinotinto", "s": 13}, {"k": "HELBFDA206TXL", "m": "HELEN BIO MOVE", "abc": "C", "g": "DAMA", "t": "XL", "c": "Azul Grisáceo", "s": 13}, {"k": "ANDMIDA13TXL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XL", "c": "Azul Rey", "s": 12}, {"k": "GEOMACADA03TL", "m": "ADVANCE GEO MAYA", "abc": "C", "g": "DAMA", "t": "L", "c": "Amarillo", "s": 11}, {"k": "MLMMJDA50TM", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "M", "c": "Rojo", "s": 10}, {"k": "MLMMJDA66TS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "S", "c": "Verde Militar", "s": 10}, {"k": "SHOUNKI23T1", "m": "SHORT PLAYA", "abc": "A", "g": "KIDS", "t": "1", "c": "Coral", "s": 10}, {"k": "DALSTKI16T10", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "10", "c": "Blanco", "s": 10}, {"k": "MLCMJCA50TS", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Rojo", "s": 10}, {"k": "MLCMJCA66TS", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Verde Militar", "s": 10}, {"k": "MLMMJDA12TM", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "M", "c": "Azul Marino", "s": 10}, {"k": "SHONTDA33TXL", "m": "EXPLORE SHORT", "abc": "B", "g": "DAMA", "t": "XL", "c": "Kaki", "s": 10}, {"k": "MLCMJCA12TS", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Azul Marino", "s": 10}, {"k": "MLCMJCA12TM", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Azul Marino", "s": 10}, {"k": "DALSTKI16T12", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "12", "c": "Blanco", "s": 9}, {"k": "MLMMJDA14TS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "S", "c": "Azul Turquesa", "s": 9}, {"k": "MAYFNDA13TXL", "m": "MAYA SPORT LITE", "abc": "C", "g": "DAMA", "t": "XL", "c": "Azul Rey", "s": 9}, {"k": "MLCMJCA50TM", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Rojo", "s": 9}, {"k": "SHONTDA31TM", "m": "EXPLORE SHORT", "abc": "B", "g": "DAMA", "t": "M", "c": "Gris Oscuro", "s": 9}, {"k": "DANMIKI66T6", "m": "DANI ORIGINAL", "abc": "C", "g": "KIDS", "t": "6", "c": "Verde Militar", "s": 8}, {"k": "SHR2VICA66TM", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Verde Militar", "s": 8}, {"k": "SHR2VICA66TL", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Verde Militar", "s": 8}, {"k": "SABMEDA13TXL", "m": "SABRI SPORT", "abc": "B", "g": "DAMA", "t": "XL", "c": "Azul Rey", "s": 8}, {"k": "MLMMJDA12TS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "S", "c": "Azul Marino", "s": 8}, {"k": "CLAMIKI12T4", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "4", "c": "Azul Marino", "s": 8}, {"k": "DALSTDA30TXL", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris Claro", "s": 7}, {"k": "BUFMIGE34TUN", "m": "FLEX COVER", "abc": "C", "g": "", "t": "", "c": "Lila", "s": 6}, {"k": "SHONTDA31TS", "m": "EXPLORE SHORT", "abc": "B", "g": "DAMA", "t": "S", "c": "Gris Oscuro", "s": 6}, {"k": "DALSSTDA30TXL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris Claro", "s": 6}, {"k": "MLMMJDA66TXS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "XS", "c": "Verde Militar", "s": 6}, {"k": "MLMMJDA12TXS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "XS", "c": "Azul Marino", "s": 6}, {"k": "MLCMJCA12TL", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Azul Marino", "s": 6}, {"k": "BUFMIGE48TUN", "m": "FLEX COVER", "abc": "C", "g": "", "t": "", "c": "Púrpura", "s": 6}, {"k": "TMOFIDA09TM", "m": "TOP MOVA", "abc": "C", "g": "", "t": "M", "c": "Azul Cielo", "s": 6}, {"k": "MLCMJCA14TL", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Azul Turquesa", "s": 6}, {"k": "MLCMJCA14TXL", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Azul Turquesa", "s": 6}, {"k": "VIVMIDA50TXS", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "XS", "c": "Rojo", "s": 6}, {"k": "MLCMJCA12TXL", "m": "MOTION LOOP CLASICA", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Azul Marino", "s": 6}, {"k": "ANDMIDA13TXS", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XS", "c": "Azul Rey", "s": 5}, {"k": "ZOEMIKI12T8", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "8", "c": "Azul Marino", "s": 5}, {"k": "MLMMJDA50TXS", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "XS", "c": "Rojo", "s": 5}, {"k": "CLAMEDA13TXS", "m": "CLÁSICA SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Azul Mazari", "s": 5}, {"k": "CLAMICA50TXL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "XL", "c": "Rojo", "s": 5}, {"k": "MAYFNDA13T2XL", "m": "MAYA SPORT LITE", "abc": "C", "g": "DAMA", "t": "2XL", "c": "Azul Rey", "s": 5}, {"k": "DALSTKI30T8", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Gris Claro", "s": 5}, {"k": "TMOFIDA09TXS", "m": "TOP MOVA", "abc": "C", "g": "", "t": "XS", "c": "Azul Cielo", "s": 5}, {"k": "CLAMIKI34T4", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "4", "c": "Lila", "s": 5}, {"k": "DALSTDA43TXS", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "XS", "c": "Negro", "s": 5}, {"k": "BUFMIGE28TUN", "m": "FLEX COVER", "abc": "C", "g": "", "t": "", "c": "Fucsia", "s": 5}, {"k": "ANDMIDA34TXL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XL", "c": "Lila", "s": 4}, {"k": "ZOEMIDA66TXS", "m": "ZOE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XS", "c": "Verde Militar", "s": 4}, {"k": "LMOFIDA09TS", "m": "LEGGING MOVA", "abc": "B", "g": "", "t": "S", "c": "Azul Cielo", "s": 4}, {"k": "CLAMIKI13T10", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "10", "c": "Azul Rey", "s": 4}, {"k": "CLAMIKI53T2", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "2", "c": "Rosado Pastel", "s": 4}, {"k": "MLMMJDA50TXL", "m": "MOTION LOOP MAFE", "abc": "C", "g": "DAMA", "t": "XL", "c": "Rojo", "s": 4}, {"k": "SABMEDA12TXL", "m": "SABRI SPORT", "abc": "B", "g": "DAMA", "t": "XL", "c": "Azul Marino", "s": 4}, {"k": "MARMICA48TXL", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "XL", "c": "Púrpura", "s": 4}, {"k": "MARMIDA14TS", "m": "MAR ORIGINAL", "abc": "A", "g": "DAMA", "t": "S", "c": "Azul Turquesa", "s": 4}, {"k": "MAYFNDA70T2XL", "m": "MAYA SPORT LITE", "abc": "C", "g": "DAMA", "t": "2XL", "c": "Vinotinto", "s": 4}, {"k": "201STDA43TL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 3}, {"k": "SHR2VIDA123TM", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "M", "c": "Verde Manzana", "s": 3}, {"k": "PANNTKI31T4", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "4", "c": "Gris Oscuro", "s": 3}, {"k": "PANNTKI31T6", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "6", "c": "Gris Oscuro", "s": 3}, {"k": "SABSTDA43TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Negro", "s": 3}, {"k": "SHOSUKI27T2", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "2", "c": "FRAILE", "s": 3}, {"k": "CLAMIKI50T2", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "2", "c": "Rojo", "s": 3}, {"k": "CRESTCA30T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Gris", "s": 3}, {"k": "CLAMIKI11T6", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "6", "c": "Azul Lavanda", "s": 3}, {"k": "DALSTDA30TL", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "L", "c": "Gris Claro", "s": 3}, {"k": "CLAMIKI01T10", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "10", "c": "Aguamarina", "s": 3}, {"k": "DALSTDA43TXL", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "XL", "c": "Negro", "s": 3}, {"k": "DALSSTCA16TXL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Blanco", "s": 3}, {"k": "CLAMIKI50T4", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "4", "c": "Rojo", "s": 3}, {"k": "CLAMIKI70T8", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "8", "c": "Vinotinto", "s": 3}, {"k": "PANNTKI31T8", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "8", "c": "Gris Oscuro", "s": 3}, {"k": "PANNTKI31T2", "m": "EXPLORE PANTS", "abc": "A", "g": "KIDS", "t": "2", "c": "Gris Oscuro", "s": 3}, {"k": "RIOMICA66T4XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Verde Militar", "s": 3}, {"k": "RIOMICA16T4XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Blanco", "s": 3}, {"k": "DALSSTCA16T2XL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Blanco", "s": 3}, {"k": "LMOFIDA09TM", "m": "LEGGING MOVA", "abc": "B", "g": "", "t": "M", "c": "Azul Cielo", "s": 3}, {"k": "DALSTKI16T4", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "4", "c": "Blanco", "s": 3}, {"k": "DANMIKI70T6", "m": "DANI ORIGINAL", "abc": "C", "g": "KIDS", "t": "6", "c": "Vinotinto", "s": 3}, {"k": "TRISTDA43TXS", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XS", "c": "Negro", "s": 3}, {"k": "MAFMIDA16T2XL", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "2XL", "c": "Blanco", "s": 3}, {"k": "MAFMEDA63TXS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Verde Agua", "s": 3}, {"k": "MAFMEDA66TXS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Verde Militar", "s": 3}, {"k": "MAFMIDA12TL", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "L", "c": "Azul Marino", "s": 3}, {"k": "BUFMIGE50TUN", "m": "FLEX COVER", "abc": "C", "g": "", "t": "", "c": "Rojo", "s": 3}, {"k": "ANMSUDA17TS", "m": "ANDRE MOTION", "abc": "C", "g": "DAMA", "t": "S", "c": "Blue", "s": 2}, {"k": "BUFMIGE11TUN", "m": "FLEX COVER", "abc": "C", "g": "", "t": "", "c": "Azul Lavanda", "s": 2}, {"k": "SHR2VIDA43TS", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "S", "c": "Negro", "s": 2}, {"k": "SHR2VIDA13TM", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "M", "c": "Azul Rey", "s": 2}, {"k": "SHR2VIDA13TXS", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "XS", "c": "Azul Rey", "s": 2}, {"k": "SHR2VIDA43TL", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 2}, {"k": "TMOFIDA09TXL", "m": "TOP MOVA", "abc": "C", "g": "", "t": "XL", "c": "Azul Cielo", "s": 2}, {"k": "SHR2VIDA43TXS", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "XS", "c": "Negro", "s": 2}, {"k": "TMOFIDA09TL", "m": "TOP MOVA", "abc": "C", "g": "", "t": "L", "c": "Azul Cielo", "s": 2}, {"k": "TMOFIDA09TS", "m": "TOP MOVA", "abc": "C", "g": "", "t": "S", "c": "Azul Cielo", "s": 2}, {"k": "CLAMICA50TS", "m": "CLASICA ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "S", "c": "Rojo", "s": 2}, {"k": "SHR2VICA66TXL", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Verde Militar", "s": 2}, {"k": "SHR2VICA70TL", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Vinotinto", "s": 2}, {"k": "CRESTDA16TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Blanco", "s": 2}, {"k": "CLAMIKI70T10", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "10", "c": "Vinotinto", "s": 2}, {"k": "SHR2VICA70TXL", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Vinotinto", "s": 2}, {"k": "CRESTCA16T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Blanco", "s": 2}, {"k": "CLMSUCA15TS", "m": "CLASICA MOTION", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Black", "s": 2}, {"k": "DALSTKI43T8", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Negro", "s": 2}, {"k": "SABSTDA30TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris", "s": 2}, {"k": "DAMSTCA30TL", "m": "MANGA LARGA DAILY", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Gris Claro", "s": 2}, {"k": "DANMIKI30T10", "m": "DANI ORIGINAL", "abc": "C", "g": "KIDS", "t": "10", "c": "Gris Claro", "s": 2}, {"k": "SABSTCA43T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Negro", "s": 2}, {"k": "MAFMIDA43T2XL", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "2XL", "c": "Negro", "s": 2}, {"k": "MAFMIDA13TXL", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "XL", "c": "Azul Rey", "s": 2}, {"k": "DALSTKI16T6", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "6", "c": "Blanco", "s": 2}, {"k": "MAFMEDA30TM", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "M", "c": "Gris Claro", "s": 2}, {"k": "LMOFIDA09TXS", "m": "LEGGING MOVA", "abc": "B", "g": "", "t": "XS", "c": "Azul Cielo", "s": 2}, {"k": "MAFMEDA16TXS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Blanco", "s": 2}, {"k": "VIVMIDA30TXS", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "XS", "c": "Gris Claro", "s": 2}, {"k": "TRISTDA43TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Negro", "s": 2}, {"k": "201STCA43T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Negro", "s": 2}, {"k": "SHR2VIDA13TL", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "L", "c": "Azul Rey", "s": 2}, {"k": "SHR2VIDA123TXS", "m": "SHORT R2", "abc": "C", "g": "DAMA", "t": "XS", "c": "Verde Manzana", "s": 2}, {"k": "DALSSTKI30T8", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Gris Claro", "s": 2}, {"k": "SHR2VICA43TL", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Negro", "s": 2}, {"k": "DALSSTKI43T8", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Negro", "s": 2}, {"k": "CLAMIKI01T4", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "4", "c": "Aguamarina", "s": 2}, {"k": "DALSSTKI43T12", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "12", "c": "Negro", "s": 2}, {"k": "DALSSTKI16T8", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Blanco", "s": 2}, {"k": "DALSSTKI30T10", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "10", "c": "Gris Claro", "s": 2}, {"k": "DALSSTKI30T12", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "12", "c": "Gris Claro", "s": 2}, {"k": "CRESTKI16T14", "m": "RETRO VZLA", "abc": "C", "g": "KIDS", "t": "14", "c": "Blanco", "s": 2}, {"k": "DALSSTDA30TS", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "S", "c": "Gris Claro", "s": 2}, {"k": "DALSSTCA43TXL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Negro", "s": 2}, {"k": "DACSTKI30T10", "m": "CLASICA DAILY", "abc": "C", "g": "KIDS", "t": "10", "c": "Gris Claro", "s": 2}, {"k": "TOA16CL", "m": "TOALLA CLIP ORIGINAL", "abc": "C", "g": "", "t": "", "c": "Blanco", "s": 1}, {"k": "ANDMIDA11T2XL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "2XL", "c": "Azul Lavanda", "s": 1}, {"k": "ANDMIDA16TL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "L", "c": "Blanco", "s": 1}, {"k": "ANDMIDA13T2XL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "2XL", "c": "Azul Rey", "s": 1}, {"k": "ANDMIDA11TXL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XL", "c": "Azul Lavanda", "s": 1}, {"k": "CLAMICA50TL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "L", "c": "Rojo", "s": 1}, {"k": "CLAMIDA04TM", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "M", "c": "Amarillo Neón", "s": 1}, {"k": "CLAMIDA01TL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "L", "c": "Aguamarina", "s": 1}, {"k": "ACDMIDA121TL", "m": "DANI ACTIVE", "abc": "C", "g": "DAMA", "t": "L", "c": "Gris con Verde", "s": 1}, {"k": "ANDMIDA34T2XL", "m": "ANDRE ORIGINAL", "abc": "B", "g": "DAMA", "t": "2XL", "c": "Lila", "s": 1}, {"k": "AQUSTCA16T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Blanco", "s": 1}, {"k": "AQUSTCA16TL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Blanco", "s": 1}, {"k": "CAP09DC", "m": "DAD CAP", "abc": "B", "g": "", "t": "", "c": "Azul Cielo", "s": 1}, {"k": "CLAMECA12TL", "m": "CLASICA SPORT", "abc": "A", "g": "CABALLERO", "t": "L", "c": "Azul Marino", "s": 1}, {"k": "CLAMEKI63T8", "m": "CLASICA SPORT", "abc": "A", "g": "KIDS", "t": "8", "c": "Verde Agua", "s": 1}, {"k": "CLAMICA30T2XL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "2XL", "c": "Gris Claro", "s": 1}, {"k": "CLAMICA34T2XL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "2XL", "c": "Lila", "s": 1}, {"k": "TRISTDA16TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Blanco", "s": 1}, {"k": "TRISTCA43TM", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Negro", "s": 1}, {"k": "TRISTCA43T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Negro", "s": 1}, {"k": "MAYFNDA24TXL", "m": "MAYA SPORT LITE", "abc": "C", "g": "DAMA", "t": "XL", "c": "Coral Neón", "s": 1}, {"k": "DALSTKI16T2", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "2", "c": "Blanco", "s": 1}, {"k": "DANMIKI04T8", "m": "DANI ORIGINAL", "abc": "C", "g": "KIDS", "t": "8", "c": "Amarillo Neón", "s": 1}, {"k": "DAMSTDA30TXL", "m": "MANGA LARGA DAILY", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris Claro", "s": 1}, {"k": "DAMSTCA43T2XL", "m": "MANGA LARGA DAILY", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Negro", "s": 1}, {"k": "GOOSTDA43TXL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XL", "c": "Negro", "s": 1}, {"k": "GOOSTDA43TXS", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XS", "c": "Negro", "s": 1}, {"k": "MAYFNDA24T2XL", "m": "MAYA SPORT LITE", "abc": "C", "g": "DAMA", "t": "2XL", "c": "Coral Neón", "s": 1}, {"k": "MARMICA50T4XL", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Rojo", "s": 1}, {"k": "MARMICA34TS", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "S", "c": "Lila", "s": 1}, {"k": "WAVSTDA16TXS", "m": "CLASICA RETRO 2.0", "abc": "C", "g": "DAMA", "t": "XS", "c": "Blanco", "s": 1}, {"k": "VIVMIDA34TM", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "M", "c": "Lila", "s": 1}, {"k": "VIVMIDA34TS", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "S", "c": "Lila", "s": 1}, {"k": "MAFMEDA34TXS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Lila", "s": 1}, {"k": "MAFMEDA30TS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "S", "c": "Gris Claro", "s": 1}, {"k": "ZOEMIDA13T2XL", "m": "ZOE ORIGINAL", "abc": "B", "g": "DAMA", "t": "2XL", "c": "Azul Rey", "s": 1}, {"k": "MAFMEDA66TXL", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XL", "c": "Verde Militar", "s": 1}, {"k": "MAFMIDA50TS", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "S", "c": "Rojo", "s": 1}, {"k": "MAFMIDA50TXL", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "XL", "c": "Rojo", "s": 1}, {"k": "MAFMIDA50TXS", "m": "MAFE ORIGINAL", "abc": "A", "g": "DAMA", "t": "XS", "c": "Rojo", "s": 1}, {"k": "MAFMEDA51TXS", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XS", "c": "Rosa Palo", "s": 1}, {"k": "MARMICA01T4XL", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Aguamarina", "s": 1}, {"k": "MARMICA30T4XL", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Gris Claro", "s": 1}, {"k": "MARMICA43T4XL", "m": "MAR ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Negro", "s": 1}, {"k": "WAVSTKI43T8", "m": "CLASICA RETRO 2.0", "abc": "C", "g": "KIDS", "t": "8", "c": "Negro", "s": 1}, {"k": "MAFMEDA13TXL", "m": "MAFE SPORT", "abc": "C", "g": "DAMA", "t": "XL", "c": "Azul Mazari", "s": 1}, {"k": "VIVMIDA13T2XL", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "2XL", "c": "Azul Rey", "s": 1}, {"k": "VIVMIDA01TS", "m": "VIVI ORIGINAL", "abc": "C", "g": "DAMA", "t": "S", "c": "Aguamarina", "s": 1}, {"k": "TRISTDA43TL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 1}, {"k": "SHOSUKI23T14", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "14", "c": "CORAL", "s": 1}, {"k": "SHOSUKI112T4", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "4", "c": "FRANCISQUI", "s": 1}, {"k": "SHOSUKI111T4", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "4", "c": "CRASQUI", "s": 1}, {"k": "SHOSUKI111T14", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "14", "c": "CRASQUI", "s": 1}, {"k": "SHOSUKI107T8", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "8", "c": "Honey", "s": 1}, {"k": "SHOSUKI107T14", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "14", "c": "Honey", "s": 1}, {"k": "SHOSUKI107T12", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "12", "c": "Honey", "s": 1}, {"k": "SHONTDA33TXS", "m": "EXPLORE SHORT", "abc": "B", "g": "DAMA", "t": "XS", "c": "Kaki", "s": 1}, {"k": "SHONTCA12TXL", "m": "EXPLORE SHORT", "abc": "B", "g": "CABALLERO", "t": "XL", "c": "Azul Marino", "s": 1}, {"k": "SHONRKI12T2", "m": "SHORT SPORT", "abc": "A", "g": "KIDS", "t": "2", "c": "Azul Marino", "s": 1}, {"k": "SABSTDA43TXS", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "XS", "c": "Negro", "s": 1}, {"k": "SABSTDA30TM", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "M", "c": "Gris", "s": 1}, {"k": "RIOMICA30T4XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Gris Claro", "s": 1}, {"k": "SABSTCA30TS", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Gris", "s": 1}, {"k": "RIOMICA12T4XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Azul Marino", "s": 1}, {"k": "RIOMICA13T4XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "4XL", "c": "Azul Rey", "s": 1}, {"k": "GOOSTCA43T2XL", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Negro", "s": 1}, {"k": "DANMIKI13T12", "m": "DANI ORIGINAL", "abc": "C", "g": "KIDS", "t": "12", "c": "Azul Rey", "s": 1}, {"k": "RIOMICA04T3XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "3XL", "c": "Amarillo Neón", "s": 1}, {"k": "RIOMICA01T3XL", "m": "RIO ORIGINAL", "abc": "A", "g": "CABALLERO", "t": "3XL", "c": "Aguamarina", "s": 1}, {"k": "MIAMIDA53TS", "m": "MIA ORIGINAL", "abc": "C", "g": "DAMA", "t": "S", "c": "Rosado Pastel", "s": 1}, {"k": "LMOFIDA09TL", "m": "LEGGING MOVA", "abc": "B", "g": "", "t": "L", "c": "Azul Cielo", "s": 1}, {"k": "DALSSTCA16TL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "L", "c": "Blanco", "s": 1}, {"k": "DALSSTDA43TL", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 1}, {"k": "DALSSTKI16T2", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "2", "c": "Blanco", "s": 1}, {"k": "DALSSTKI16T12", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "12", "c": "Blanco", "s": 1}, {"k": "DALSSTKI16T10", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "10", "c": "Blanco", "s": 1}, {"k": "DACSTKI43T12", "m": "CLASICA DAILY", "abc": "C", "g": "KIDS", "t": "12", "c": "Negro", "s": 1}, {"k": "SHOSUKI54T8", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "8", "c": "ROYAL", "s": 1}, {"k": "DACSTKI30T12", "m": "CLASICA DAILY", "abc": "C", "g": "KIDS", "t": "12", "c": "Gris Claro", "s": 1}, {"k": "SHOSUKI36T1", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "1", "c": "MAKO", "s": 1}, {"k": "SHOSUKI26T1", "m": "SHORT PLAYA ESTAMPADO", "abc": "A", "g": "KIDS", "t": "1", "c": "DORADO", "s": 1}, {"k": "CLAMIKI01T6", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "6", "c": "Aguamarina", "s": 1}, {"k": "CLAMIKI01T14", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "14", "c": "Aguamarina", "s": 1}, {"k": "CLAMIDA43T2XL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "2XL", "c": "Negro", "s": 1}, {"k": "CLAMIDA13TXL", "m": "CLASICA ORIGINAL", "abc": "A", "g": "DAMA", "t": "XL", "c": "Azul Rey", "s": 1}, {"k": "DALSTCA16TXL", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "XL", "c": "Blanco", "s": 1}, {"k": "DALSTDA43TL", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "DAMA", "t": "L", "c": "Negro", "s": 1}, {"k": "DALSTCA16TS", "m": "CLASICA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Blanco", "s": 1}, {"k": "DALSSTKI30T6", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "6", "c": "Gris Claro", "s": 1}, {"k": "DALSSTKI30T2", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "KIDS", "t": "2", "c": "Gris Claro", "s": 1}, {"k": "DACSTKI30T6", "m": "CLASICA DAILY", "abc": "C", "g": "KIDS", "t": "6", "c": "Gris Claro", "s": 1}, {"k": "DALSSTCA16TM", "m": "MANGA LARGA DAILY 2.0", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Blanco", "s": 1}, {"k": "CLAMIKI50T6", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "6", "c": "Rojo", "s": 1}, {"k": "CLAMIKI70T12", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "12", "c": "Vinotinto", "s": 1}, {"k": "CLAMIKI66T1", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "1", "c": "Verde Militar", "s": 1}, {"k": "CLAMIKI53T8", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "8", "c": "Rosado Pastel", "s": 1}, {"k": "CLAMIKI30T6", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "6", "c": "Gris Claro", "s": 1}, {"k": "SHR2VICA70TM", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Vinotinto", "s": 1}, {"k": "SHR2VICA43TS", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Negro", "s": 1}, {"k": "CLAMIKI34T2", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "2", "c": "Lila", "s": 1}, {"k": "CLAMIKI34T14", "m": "CLASICA ORIGINAL", "abc": "A", "g": "KIDS", "t": "14", "c": "Lila", "s": 1}, {"k": "ZOEMIDA66TL", "m": "ZOE ORIGINAL", "abc": "B", "g": "DAMA", "t": "L", "c": "Verde Militar", "s": 1}, {"k": "ZOEMIDA66TXL", "m": "ZOE ORIGINAL", "abc": "B", "g": "DAMA", "t": "XL", "c": "Verde Militar", "s": 1}, {"k": "ACDMIDA120TXL", "m": "DANI ACTIVE", "abc": "C", "g": "DAMA", "t": "XL", "c": "Gris con Azul", "s": 1}, {"k": "SHR2VICA70TS", "m": "SHORT R2", "abc": "C", "g": "CABALLERO", "t": "S", "c": "Vinotinto", "s": 1}, {"k": "ACCMICA121T2XL", "m": "CLASICA ACTIVE", "abc": "C", "g": "CABALLERO", "t": "2XL", "c": "Gris con Verde", "s": 1}, {"k": "ZOEMIKI13T14", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "14", "c": "Azul Rey", "s": 1}, {"k": "201STDA30TL", "m": "RETRO VZLA", "abc": "C", "g": "DAMA", "t": "L", "c": "Gris", "s": 1}, {"k": "ZOEMIKI13T8", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "8", "c": "Azul Rey", "s": 1}, {"k": "ZOEMIKI48T2", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "2", "c": "Púrpura", "s": 1}, {"k": "ZOEMIKI66T10", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "10", "c": "Verde Militar", "s": 1}, {"k": "ZOEMIKI66T12", "m": "ZOE ORIGINAL", "abc": "B", "g": "KIDS", "t": "12", "c": "Verde Militar", "s": 1}, {"k": "201STCA30TM", "m": "RETRO VZLA", "abc": "C", "g": "CABALLERO", "t": "M", "c": "Gris", "s": 1}];
+const REAB=[{"m": "TRAVEL BACKPACK", "abc": "A", "s": 52, "v": 2543, "vm": 423.83, "cob": 0.1, "al": ["CRÍTICO"]}, {"m": "BUCKET HAT", "abc": "B", "s": 6, "v": 295, "vm": 49.17, "cob": 0.1, "al": []}, {"m": "MESH CAP", "abc": "B", "s": 7, "v": 178, "vm": 29.67, "cob": 0.2, "al": []}, {"m": "TOTE BAG", "abc": "A", "s": 224, "v": 1835, "vm": 305.83, "cob": 0.7, "al": ["CRÍTICO"]}, {"m": "HAT", "abc": "A", "s": 126, "v": 799, "vm": 133.17, "cob": 0.9, "al": ["CRÍTICO"]}, {"m": "TOALLA ESTAMPADA", "abc": "A", "s": 517, "v": 2771, "vm": 461.83, "cob": 1.1, "al": []}, {"m": "SUN HAT", "abc": "B", "s": 90, "v": 377, "vm": 62.83, "cob": 1.4, "al": []}, {"m": "DRY BAG 30L", "abc": "A", "s": 450, "v": 1746, "vm": 291.0, "cob": 1.5, "al": []}, {"m": "KID HAT", "abc": "B", "s": 105, "v": 381, "vm": 63.5, "cob": 1.7, "al": []}, {"m": "DRY BAG 5L", "abc": "A", "s": 351, "v": 991, "vm": 165.17, "cob": 2.1, "al": []}, {"m": "PRO CAP", "abc": "B", "s": 107, "v": 293, "vm": 48.83, "cob": 2.2, "al": []}, {"m": "TOALLA CLIP 2.0", "abc": "A", "s": 548, "v": 1294, "vm": 215.67, "cob": 2.5, "al": []}, {"m": "TRAVEL BAG 40L", "abc": "A", "s": 236, "v": 559, "vm": 93.17, "cob": 2.5, "al": []}, {"m": "TRAVEL BAG 18L", "abc": "B", "s": 184, "v": 429, "vm": 71.5, "cob": 2.6, "al": []}];
+const SOB=[{"m": "SHORT PLAYA", "abc": "A", "s": 2314, "v": 852, "vm": 142.0, "cob": 16.3, "muer": false}, {"m": "CUADRO TAG", "abc": "A", "s": 1254, "v": 562, "vm": 93.67, "cob": 13.4, "muer": false}, {"m": "VIVI ORIGINAL", "abc": "C", "s": 1180, "v": 151, "vm": 25.17, "cob": 46.9, "muer": false}, {"m": "HELEN BIO MOVE", "abc": "C", "s": 959, "v": 83, "vm": 13.83, "cob": 69.3, "muer": false}, {"m": "ZOE ORIGINAL", "abc": "B", "s": 940, "v": 429, "vm": 71.5, "cob": 13.1, "muer": false}, {"m": "SABRI SPORT", "abc": "B", "s": 932, "v": 200, "vm": 33.33, "cob": 28.0, "muer": false}, {"m": "ANDRE ORIGINAL", "abc": "B", "s": 923, "v": 198, "vm": 33.0, "cob": 28.0, "muer": false}, {"m": "DOMINIC BIO MOVE", "abc": "C", "s": 840, "v": 130, "vm": 21.67, "cob": 38.8, "muer": false}, {"m": "MIKA SPORT LITE", "abc": "B", "s": 765, "v": 342, "vm": 57.0, "cob": 13.4, "muer": false}, {"m": "EXPLORE SHORT", "abc": "B", "s": 724, "v": 185, "vm": 30.83, "cob": 23.5, "muer": false}, {"m": "HEADBAND", "abc": "B", "s": 696, "v": 324, "vm": 54.0, "cob": 12.9, "muer": false}, {"m": "MAYA SPORT LITE", "abc": "C", "s": 550, "v": 140, "vm": 23.33, "cob": 23.6, "muer": false}, {"m": "VESTIDO GEMMA", "abc": "C", "s": 533, "v": 141, "vm": 23.5, "cob": 22.7, "muer": false}, {"m": "ACTIVE DUO", "abc": "B", "s": 483, "v": 214, "vm": 35.67, "cob": 13.5, "muer": false}, {"m": "BASIC LINE SHORT", "abc": "C", "s": 478, "v": 133, "vm": 22.17, "cob": 21.6, "muer": false}, {"m": "TOP MOVA", "abc": "C", "s": 441, "v": 147, "vm": 24.5, "cob": 18.0, "muer": false}, {"m": "ECO BAG", "abc": "C", "s": 424, "v": 17, "vm": 2.83, "cob": 149.8, "muer": false}, {"m": "LEGGING MOVA", "abc": "B", "s": 410, "v": 153, "vm": 25.5, "cob": 16.1, "muer": false}, {"m": "ADVANCE GEO MAYA", "abc": "C", "s": 381, "v": 33, "vm": 5.5, "cob": 69.3, "muer": false}, {"m": "ADVANCE GEO DOMINIC", "abc": "C", "s": 357, "v": 99, "vm": 16.5, "cob": 21.6, "muer": false}, {"m": "URBAN COTTON TOP SAY YES", "abc": "C", "s": 188, "v": 45, "vm": 7.5, "cob": 25.1, "muer": false}, {"m": "FLEX COVER", "abc": "C", "s": 174, "v": 73, "vm": 12.17, "cob": 14.3, "muer": false}, {"m": "URBAN COTTON TOP VINTAGE GRIS", "abc": "C", "s": 173, "v": 55, "vm": 9.17, "cob": 18.9, "muer": false}, {"m": "CUADRO BAND ELASTIC", "abc": "C", "s": 173, "v": 30, "vm": 5.0, "cob": 34.6, "muer": false}, {"m": "MAFE ADVANCE", "abc": "C", "s": 171, "v": 82, "vm": 13.67, "cob": 12.5, "muer": false}, {"m": "CLASICA DAILY 2.0", "abc": "C", "s": 123, "v": 40, "vm": 6.67, "cob": 18.4, "muer": false}, {"m": "SUNNY CORD ORIGINAL", "abc": "C", "s": 123, "v": 14, "vm": 2.33, "cob": 52.8, "muer": false}, {"m": "URBAN COTTON OVERSIZED VINTAGE GRIS", "abc": "C", "s": 109, "v": 16, "vm": 2.67, "cob": 40.8, "muer": false}, {"m": "URBAN COTTON OVERSIZED HORIZONTE", "abc": "C", "s": 103, "v": 50, "vm": 8.33, "cob": 12.4, "muer": false}, {"m": "URBAN COTTON OVERSIZED SUNSET", "abc": "C", "s": 97, "v": 36, "vm": 6.0, "cob": 16.2, "muer": false}, {"m": "URBAN COTTON TOP GRAY BLOCK", "abc": "C", "s": 84, "v": 24, "vm": 4.0, "cob": 21.0, "muer": false}, {"m": "MANGA LARGA DAILY 2.0", "abc": "C", "s": 81, "v": 36, "vm": 6.0, "cob": 13.5, "muer": false}, {"m": "MOTION LOOP CLASICA", "abc": "C", "s": 73, "v": 0, "vm": 0.0, "cob": 9999.0, "muer": true}, {"m": "MOTION LOOP MAFE", "abc": "C", "s": 68, "v": 0, "vm": 0.0, "cob": 9999.0, "muer": true}, {"m": "SHORT R2", "abc": "C", "s": 51, "v": 8, "vm": 1.33, "cob": 38.3, "muer": false}, {"m": "MAFE SPORT", "abc": "C", "s": 21, "v": 8, "vm": 1.33, "cob": 15.8, "muer": false}];
+const NUE=[{"m": "BACKPACK FLEX", "s": 154, "skus": 3, "Nov": 0, "Dic": 0, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 2, "total": 2}, {"m": "CAVAPACK 35L", "s": 94, "skus": 2, "Nov": 0, "Dic": 0, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 11, "total": 11}, {"m": "CITYBAG", "s": 309, "skus": 4, "Nov": 0, "Dic": 0, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 108, "total": 108}, {"m": "LARISA ORIGINAL", "s": 334, "skus": 19, "Nov": 0, "Dic": 0, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 7, "total": 7}, {"m": "MAXI TOTE", "s": 102, "skus": 2, "Nov": 0, "Dic": 2, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 3, "total": 5}, {"m": "RUNNING TANK BIOMOVE", "s": 333, "skus": 15, "Nov": 0, "Dic": 0, "Ene": 0, "Feb": 0, "Mar": 0, "Abr": 0, "May": 2, "total": 2}];
+
+function abcBadge(a){return`<span class="abc-${a.toLowerCase()}">${a}</span>`}
+function cobPill(c,abc){
+  if(c>=9999)return'<span class="cob cob-p">Sin venta</span>';
+  const cv=c.toFixed(1)+'m';
+  if(abc==='A'&&c<1)return`<span class="cob cob-r">⚡${cv}</span>`;
+  if(c<1)return`<span class="cob cob-r">${cv}</span>`;
+  if(c<=3)return`<span class="cob cob-r">${cv}</span>`;
+  if(c<=8)return`<span class="cob cob-ok">${cv}</span>`;
+  return`<span class="cob cob-w">${cv}</span>`;
+}
+function alBadge(al){
+  if(!al||!al.length)return'<span class="al-ok">✓ OK</span>';
+  return al.map(x=>x==='CRÍTICO'?'<span class="al-crit">⚡ Crítico</span>':x==='EXCESO'?'<span class="al-exc">▲ Exceso</span>':'<span class="al-muer">● Muerto</span>').join(' ');
+}
+function rCls(al){if(!al||!al.length)return'';if(al.includes('CRÍTICO'))return'hc';if(al.includes('EXCESO'))return'he';return''}
+function numK(n){return n>=1000?(n/1000).toFixed(1)+'k':n}
+
+// CATÁLOGO
+function buildCat(){
+  const mx=Math.max(...MODELOS.map(r=>r.v));
+  const tb=document.getElementById('tb-cat');
+  MODELOS.forEach((r,i)=>{
+    const sob=r.al.includes('EXCESO')?' <span class="al-exc" style="font-size:9px">▲</span>':'';
+    const bajo=(r.abc==='A'&&r.al.includes('CRÍTICO'))?' <span class="al-crit" style="font-size:9px">⚡</span>':'';
+    tb.innerHTML+=`<tr class="${rCls(r.al)}" data-abc="${r.abc}" data-al="${r.al.join(',')}" data-m="${r.m.toLowerCase()}">
+      <td style="color:var(--txt3);font-size:10.5px">${i+1}</td>
+      <td style="font-weight:500">${r.m}${sob}${bajo}</td>
+      <td class="r">${abcBadge(r.abc)}</td>
+      <td class="r">${r.s.toLocaleString()}</td>
+      <td class="r"><div class="ibar"><div class="ibg"><div class="ifl" style="width:${Math.round(r.v/mx*100)}%;background:${r.abc==='A'?'var(--A)':r.abc==='B'?'var(--B)':'var(--C)'}"></div></div><span class="ilbl">${numK(r.v)}</span></div></td>
+      <td class="r mono">${r.vm.toLocaleString()}</td>
+      <td class="r">${cobPill(r.cob,r.abc)}</td>
+      <td class="r" style="font-size:11px;color:var(--txt3)">${r.cp}%</td>
+      <td class="r">${alBadge(r.al)}</td>
+    </tr>`;
+  });
+}
+function filterCat(){
+  const q=document.getElementById('srch-cat').value.toLowerCase();
+  const abc=document.getElementById('sel-cat-abc').value;
+  const al=document.getElementById('sel-cat-al').value;
+  let vis=0;
+  document.getElementById('tb-cat').querySelectorAll('tr').forEach(tr=>{
+    const m=tr.dataset.m||'',a=tr.dataset.abc||'',ax=tr.dataset.al||'';
+    const ok=(!q||m.includes(q))&&(!abc||a===abc)&&(!al||(al==='OK'?ax==='':(ax.includes(al))));
+    tr.style.display=ok?'':'none'; if(ok)vis++;
+  });
+  document.getElementById('cnt-cat').textContent=vis+' modelos';
+}
+
+// REABASTO
+function buildReab(){
+  const tb=document.getElementById('tb-rea');
+  REAB.forEach(r=>{
+    tb.innerHTML+=`<tr class="${rCls(r.al)}" data-abc="${r.abc}" data-m="${r.m.toLowerCase()}">
+      <td style="font-weight:600">${r.m}</td><td class="r">${abcBadge(r.abc)}</td>
+      <td class="r">${r.s.toLocaleString()}</td><td class="r">${r.v.toLocaleString()}</td>
+      <td class="r mono">${r.vm.toLocaleString()}</td><td class="r">${cobPill(r.cob,r.abc)}</td>
+      <td class="r">${alBadge(r.al)}</td></tr>`;
+  });
+}
+
+// SOBRESTOCK
+function buildSob(){
+  const mx=Math.max(...SOB.map(r=>r.s));
+  const tb=document.getElementById('tb-sob');
+  SOB.forEach(r=>{
+    const isMuer=r.muer;
+    const diag=isMuer?'<span class="al-muer">● Muerto</span>':r.cob>30?'<span class="al-exc">▲ Exceso crítico</span>':'<span class="al-exc">▲ Exceso</span>';
+    tb.innerHTML+=`<tr class="he" data-abc="${r.abc}" data-m="${r.m.toLowerCase()}">
+      <td style="font-weight:600">${r.m}</td><td class="r">${abcBadge(r.abc)}</td>
+      <td class="r"><div class="ibar"><div class="ibg"><div class="ifl" style="width:${Math.round(r.s/mx*100)}%;background:var(--exc)"></div></div><span class="ilbl">${r.s.toLocaleString()}</span></div></td>
+      <td class="r">${r.v.toLocaleString()}</td><td class="r mono">${r.vm||'—'}</td>
+      <td class="r">${cobPill(r.cob,r.abc)}</td><td class="r">${diag}</td></tr>`;
+  });
+}
+function filterSob(){
+  const q=document.getElementById('srch-sob').value.toLowerCase();
+  const abc=document.getElementById('sel-sob-abc').value;
+  let vis=0;
+  document.getElementById('tb-sob').querySelectorAll('tr').forEach(tr=>{
+    const ok=(!q||tr.dataset.m.includes(q))&&(!abc||tr.dataset.abc===abc);
+    tr.style.display=ok?'':'none'; if(ok)vis++;
+  });
+  document.getElementById('cnt-sob').textContent=vis+' modelos';
+}
+
+// MUERTO
+function buildMuer(){
+  const tb=document.getElementById('tb-muer');
+  DEAD.forEach(r=>{
+    tb.innerHTML+=`<tr data-abc="${r.abc}" data-gen="${r.g}" data-m="${(r.m+' '+r.k+' '+r.c+' '+r.t).toLowerCase()}">
+      <td class="mono">${r.k}</td>
+      <td style="font-weight:500">${r.m} ${abcBadge(r.abc)}</td>
+      <td class="r"><span class="abc-${r.abc.toLowerCase()}" style="font-size:9px;padding:1px 5px">${r.abc}</span></td>
+      <td>${r.g||'<span style="color:var(--txt3)">—</span>'}</td>
+      <td>${r.t||'<span style="color:var(--txt3)">—</span>'}</td>
+      <td>${r.c||'<span style="color:var(--txt3)">—</span>'}</td>
+      <td class="r"><strong style="color:var(--crit)">${r.s}</strong></td></tr>`;
+  });
+  document.getElementById('cnt-muer').textContent=DEAD.length+' SKUs';
+}
+function filterMuer(){
+  const q=document.getElementById('srch-muer').value.toLowerCase();
+  const abc=document.getElementById('sel-muer-abc').value;
+  const gen=document.getElementById('sel-muer-gen').value;
+  let vis=0;
+  document.getElementById('tb-muer').querySelectorAll('tr').forEach(tr=>{
+    const ok=(!q||tr.dataset.m.includes(q))&&(!abc||tr.dataset.abc===abc)&&(!gen||tr.dataset.gen===gen);
+    tr.style.display=ok?'':'none'; if(ok)vis++;
+  });
+  document.getElementById('cnt-muer').textContent=vis+' SKUs';
+}
+
+// NUEVOS
+function buildNuevos(){
+  const cont=document.getElementById('cards-nuevos');
+  const meses=['Nov','Dic','Ene','Feb','Mar','Abr','May'];
+  NUE.forEach(n=>{
+    const mh=meses.map(l=>{
+      const v=n[l]||0;
+      return`<div class="nm ${v>0?'on':''}"><div class="nm-l">${l}</div><div class="nm-v">${v||'—'}</div></div>`;
+    }).join('');
+    cont.innerHTML+=`<div class="ncard">
+      <div class="nctitle">${n.m}</div>
+      <div class="nmonths">${mh}</div>
+      <div class="nm-stock"><span>Stock actual</span><strong>${n.s.toLocaleString()} uds</strong></div>
+    </div>`;
+  });
+}
+
+// STOCK BARS
+function buildBars(){
+  const data=[{t:'TALLER',s:14842,c:'#3b82f6'},{t:'GRIETA',s:14395,c:'#0d9488'},{t:'SAMBIL',s:11386,c:'#0d9488'},{t:'CERRO VERDE',s:10117,c:'#2563eb'},{t:'CHACAO',s:9560,c:'#2563eb'},{t:'TOLON',s:9266,c:'#d97706'},{t:'GRANDPLAZ',s:2583,c:'#dc2626'}];
+  const mx=14842,ct=document.getElementById('stock-bars');
+  data.forEach(d=>{ct.innerHTML+=`<div class="tbr"><div class="tbn">${d.t}</div><div class="tbw"><div class="ibg"><div class="ifl" style="width:${Math.round(d.s/mx*100)}%;background:${d.c}"></div></div></div><div class="tbv">${d.s.toLocaleString()}</div></div>`;
+  });
+}
+
+// CHARTS
+function buildCharts(){
+  const isDark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const gc=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)';
+  const tc=isDark?'#7090b0':'#6080a0';
+  new Chart(document.getElementById('ch-trend'),{type:'bar',data:{labels:['Nov','Dic','Ene','Feb','Mar','Abr'],datasets:[{data:[12229,22776,6577,8645,14005,8505],backgroundColor:['#3b82f6','#0d9488','#93c5fd','#93c5fd','#3b82f6','#93c5fd'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw.toLocaleString()+' uds'}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:v=>v>=1000?(v/1000)+'k':v}}}}});
+  new Chart(document.getElementById('ch-tiendas'),{type:'bar',data:{labels:['GRIETA','SAMBIL','CERRO V.','CHACAO','TALLER','GRAND','TOLON'],datasets:[{data:[25158,16157,14822,11640,2605,2275,80],backgroundColor:['#071526','#0f2340','#163258','#3b82f6','#60a5fa','#93c5fd','#d97706'],borderRadius:4,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw.toLocaleString()+' uds'}}},scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:v=>v>=1000?(v/1000)+'k':v}},y:{grid:{display:false},ticks:{color:tc,font:{size:10}}}}}});
+  new Chart(document.getElementById('ch-donut'),{type:'doughnut',data:{labels:['Clase A','Clase B','Clase C'],datasets:[{data:[28,29,48],backgroundColor:['#0d9488','#7c3aed','#64748b'],borderWidth:3,borderColor:isDark?'#071526':'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' modelos'}}}}});
+}
+
+function goTab(id,el){
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sec-'+id).classList.add('on');
+}
+
+buildCat(); buildReab(); buildSob(); buildMuer(); buildNuevos(); buildBars();
+window.addEventListener('load',buildCharts);
+</script>
+</body>
+</html>
